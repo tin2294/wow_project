@@ -9,6 +9,15 @@
 
 -- SQLINES DEMO *** no DDL - XMLTYPE
 
+CREATE TABLE employee (
+     employee_id  BIGINT NOT NULL COMMENT 'Employee ID',
+     fname  VARCHAR(30) NOT NULL COMMENT 'First Name of employee',
+     lname  VARCHAR(30) NOT NULL COMMENT 'Last Name of employee',
+     email  VARCHAR(25) NOT NULL COMMENT 'email',
+     phone  VARCHAR(10) NOT NULL COMMENT 'phone number',
+     emp_role VARCHAR(25) COMMENT 'role of employee'
+);
+
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE TABLE corp_cust (
     cust_id      BIGINT NOT NULL COMMENT 'Customer ID',
