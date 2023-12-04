@@ -18,6 +18,8 @@ CREATE TABLE employee (
      emp_role VARCHAR(25) COMMENT 'role of employee'
 );
 
+ALTER TABLE employee ADD CONSTRAINT employee_pk PRIMARY KEY ( employee_id );
+
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE TABLE corp_cust (
     cust_id      BIGINT NOT NULL COMMENT 'Customer ID',
