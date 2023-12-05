@@ -1,0 +1,9 @@
+.idea/
+/wow_project/.pytest_cache/
+/test/.pytest_cache/
+/.pytest_cache/
+ _pycache_/
+ **/_pycache_/
+ *.pyc
+.DS_Store
+*.pyc
