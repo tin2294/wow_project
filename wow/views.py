@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from wow.models import RentalService, Customer
 
-
+# Comment to commit
 # Create your views here.
 def index(request):
     return HttpResponse("WOW Index")
