@@ -1,11 +1,37 @@
+from django.shortcuts import render, redirect, reverse
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
+from .forms import AccountRegistrationForm
 from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
 
 
 # Create your views here.
+def register_account(request):
+    if request.method == "POST":
+        reg_form = AccountRegistrationForm(request.POST)
+        if reg_form.is_valid():
+            reg_form.save()
+            return redirect(reverse("login"))
+    else:
+        reg_form = AccountRegistrationForm()
+
+    return render(request, 'wow/register.html', {"form": reg_form})
+
+
+def view_profile(request):
+    user_instance = request.user
+    context = {
+        "first_name": user_instance.first_name,
+        "last_name": user_instance.last_name,
+        "email": user_instance.email,
+        "is_staff": user_instance.is_staff
+    }
+    return render(request, 'wow/view_profile.html', context)
+
+
 def index(request):
     return HttpResponse("WOW Index")
 
@@ -27,13 +53,14 @@ def bookings_emp(request):
         'cust_id__corpcust__company_name', 'cust_id__corpcust__company_no', 'cust_id__corpcust__emp_id'
     )
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
-    return render(request, 'bookings_emp.html', {'bookings': bookings})
+    return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
+
 
 
 def vehicles(request):
     vehicles_queryset = Vehicle.objects.all().values('vehicle_id', 'make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
     vehicles = list(vehicles_queryset)
-    return render(request, 'vehicles.html', {'vehicles': vehicles})
+    return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
 
 def vehicle_details(request, vehicle_id):

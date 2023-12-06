@@ -1,13 +1,26 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
 
+class Customer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    cust_id = models.BigIntegerField(primary_key=True, db_comment='Customer ID')
+    address_houseno = models.BigIntegerField(db_comment='House Number in Address')
+    address_street = models.CharField(max_length=30, db_comment='Street name in Address')
+    address_state = models.CharField(max_length=2, db_comment='State name in Address')
+    address_city = models.CharField(max_length=30, db_comment='City name in Address')
+    address_zipcode = models.CharField(max_length=5, db_comment='Zipcode of address')
+    phone = models.CharField(max_length=10, db_comment='PHONE NUMBER')
+    cust_type = models.CharField(max_length=1, db_comment='Type of Customer')
+
+    class Meta:
+        managed = False
+        db_table = 'customer'
+        db_table_comment = 'Customers'
 
 class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     employee_id = models.BigIntegerField(primary_key=True, db_comment='Employee ID')
-    fname = models.CharField(max_length=30, db_comment='First Name of employee')
-    lname = models.CharField(max_length=30, db_comment='Last Name of employee')
-    email = models.CharField(max_length=25, db_comment='email')
     phone = models.CharField(max_length=10, db_comment='phone number')
     emp_role = models.CharField(max_length=25, blank=True, null=True, db_comment='role of employee')
 
@@ -15,6 +28,27 @@ class Employee(models.Model):
         managed = False
         db_table = 'employee'
 
+class IndivCust(models.Model):
+    cust = models.OneToOneField(Customer, models.CASCADE, primary_key=True, db_comment='Customer ID')
+    licenseno = models.CharField(max_length=15, db_comment='Licence Number of Individual customer')
+    insurance_co = models.CharField(max_length=30, db_comment='Insurance company name')
+    insurancep_no = models.CharField(max_length=30, db_comment='Insurance policy number')
+
+    class Meta:
+        managed = False
+        db_table = 'indiv_cust'
+
+
+class CorpCust(models.Model):
+    cust = models.OneToOneField('Customer', models.CASCADE, primary_key=True, db_comment='Customer ID')
+    company_name = models.CharField(max_length=30, db_comment='Name of the company')
+    company_no = models.CharField(max_length=30, db_comment='Registration number of company')
+    emp_id = models.BigIntegerField(db_comment='ID of the employee')
+    discid = models.OneToOneField('Discount', models.DO_NOTHING, db_column='discid', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'corp_cust'
 
 class Vclass(models.Model):
     classid = models.BigIntegerField(primary_key=True, db_comment='Vehicle Class ID')
@@ -64,22 +98,6 @@ class Vehicle(models.Model):
         return self.make
 
 
-class Customer(models.Model):
-    cust_id = models.BigIntegerField(primary_key=True, db_comment='Customer ID')
-    address_houseno = models.BigIntegerField(db_comment='House Number in Address')
-    address_street = models.CharField(max_length=30, db_comment='Street name in Address')
-    address_state = models.CharField(max_length=2, db_comment='State name in Address')
-    address_city = models.CharField(max_length=30, db_comment='City name in Address')
-    address_zipcode = models.CharField(max_length=5, db_comment='Zipcode of address')
-    phone = models.CharField(max_length=10, db_comment='PHONE NUMBER')
-    cust_type = models.CharField(max_length=1, db_comment='Type of Customer')
-
-    class Meta:
-        managed = False
-        db_table = 'customer'
-        db_table_comment = 'Customers'
-
-
 class RentalService(models.Model):
     service_id = models.IntegerField(primary_key=True, db_comment='Service ID')
     pickup_street = models.CharField(max_length=30, db_comment='Pick up street name')
@@ -97,31 +115,6 @@ class RentalService(models.Model):
         managed = False
         db_table = 'rental_service'
         db_table_comment = 'Rental services'
-
-
-class IndivCust(models.Model):
-    cust = models.OneToOneField(Customer, models.DO_NOTHING, primary_key=True, db_comment='Customer ID')
-    fname = models.CharField(max_length=30, db_comment='First Name of individual customer')
-    lname = models.CharField(max_length=30, db_comment='Last Name of Individual Customer')
-    licenseno = models.CharField(max_length=15, db_comment='Licence Number of Individual customer')
-    insurance_co = models.CharField(max_length=30, db_comment='Insurance company name')
-    insurancep_no = models.CharField(max_length=30, db_comment='Insurance policy number')
-
-    class Meta:
-        managed = False
-        db_table = 'indiv_cust'
-
-
-class CorpCust(models.Model):
-    cust = models.OneToOneField('Customer', models.DO_NOTHING, primary_key=True, db_comment='Customer ID')
-    company_name = models.CharField(max_length=30, db_comment='Name of the company')
-    company_no = models.CharField(max_length=30, db_comment='Registration number of company')
-    emp_id = models.BigIntegerField(db_comment='ID of the employee')
-    discid = models.OneToOneField('Discount', models.DO_NOTHING, db_column='discid', blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'corp_cust'
 
 
 class Discount(models.Model):

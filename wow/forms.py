@@ -1,3 +1,27 @@
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from .constants import EMPLOYEE_ACCESS_CODE
+
+class AccountRegistrationForm(UserCreationForm):
+    access_code_input = forms.CharField(required=False)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        is_staff = cleaned_data.get("is_staff")
+        access_code_input = cleaned_data.get("access_code_input")
+        if is_staff and not access_code_input == EMPLOYEE_ACCESS_CODE:
+            raise ValidationError("Please check your access code and try again")
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "email", "is_staff"]
+        labels = {
+            "is_staff": _("Registering as an Employee?")
+        }
+
 from django import forms
 from .models import Customer, Vehicle, RentalService
 from .constants import STATES

@@ -1,9 +1,13 @@
 from django.urls import path
-
+from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("register/", views.register_account, name="register_account"),
+    path("login/", LoginView.as_view(template_name="wow/login.html"), name="login"),
+    path("logout/", LogoutView.as_view(template_name="wow/logout.html"), name="logout"),
+    path("profile/", views.view_profile, name="view_profile"),
     path("bookings/", views.bookings_emp, name="bookings"),
     path("vehicles/", views.vehicles, name="vehicles"),
     path("bookings/<str:service_id>", views.rentalservice_details, name="rentalservice_details"),

@@ -687,7 +687,7 @@ DELIMITER ;
 -- 
 -- SQLINES DEMO ***                         0
 -- SQLINES DEMO *** A                       0
--- SQLINES DEMO *** T                       0
--- 
 -- SQLINES DEMO ***                         0
+-- SQLINES DEMO *** T                       0
+--
 -- SQLINES DEMO ***                         0

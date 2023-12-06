@@ -1,3 +1,4 @@
+EMPLOYEE_ACCESS_CODE = 'xXtA1t8sB!|a]*-Y>q>ULytJA>#*n'
 STATES = (
     ('AL', 'Alabama'),
     ('AK', 'Alaska'),
