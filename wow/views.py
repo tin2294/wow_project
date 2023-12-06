@@ -98,3 +98,11 @@ def delete_vehicle(request, vehicle_id):
         vehicle.delete()
         return HttpResponseRedirect(reverse('vehicles'))
     return render(request, 'vehicle_delete.html', {'vehicle': vehicle})
+
+
+def delete_rentalservice(request, service_id):
+    rentalservice = get_object_or_404(RentalService, pk=service_id)
+    if request.method == 'POST':
+        rentalservice.delete()
+        return HttpResponseRedirect(reverse('bookings'))
+    return render(request, 'rentalservice_delete.html', {'rentalservice': rentalservice})
