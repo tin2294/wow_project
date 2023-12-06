@@ -18,6 +18,7 @@
                     <th>Daily Rate</th>
                     <th>Daily Mileage</th>
                     <th>Overage Rate</th>
+                    <th>Delete?</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +31,12 @@
                     <td>{{ vehicle.classid__daily_rate }}</td>
                     <td>{{ vehicle.classid__daily_mileage }}</td>
                     <td>{{ vehicle.classid__overage_rate }}</td>
+                    <td>
+                        <form action="{% url 'delete_vehicle' vehicle.vehicle_id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

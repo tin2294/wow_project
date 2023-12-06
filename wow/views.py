@@ -92,3 +92,9 @@ def create_vehicle(request):
     return render(request, 'vehicle_creation.html', {'form': form})
 
 
+def delete_vehicle(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+    if request.method == 'POST':
+        vehicle.delete()
+        return HttpResponseRedirect(reverse('vehicles'))
+    return render(request, 'vehicle_delete.html', {'vehicle': vehicle})
