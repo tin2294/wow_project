@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from wow.models import RentalService, Customer
 
 
 # Create your views here.
@@ -7,8 +8,10 @@ def index(request):
     return HttpResponse("WOW Index")
 
 
-def bookings(request):
-    return render(request, 'bookings.html')
+def bookings_emp(request):
+    bookings_query = RentalService.objects.all().values('pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date', 'dropoff_date', 'start_odometer', 'end_odometer', 'cust_id__cust_type', 'vehicle_id__make', 'vehicle_id__model')
+    bookings = list(bookings_query)
+    return render(request, 'bookings_emp.html', {'bookings': bookings})
 
 def vehicles(request):
     return render(request, 'vehicles.html')
