@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
-from .forms import VehicleForm
+from .forms import VehicleForm, RentalServiceForm
 
 
 # Create your views here.
@@ -14,7 +14,7 @@ def bookings_emp(request):
     bookings_query_ind = RentalService.objects.filter(
         cust_id__cust_type='I'
     ).values(
-        'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+        'service_id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
         'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle_id__classid__class_name', 'vehicle_id__make', 'vehicle_id__model',
         'cust_id__indivcust__fname', 'cust_id__indivcust__lname', 'cust_id__indivcust__licenseno',
         'cust_id__indivcust__insurance_co', 'cust_id__indivcust__insurancep_no'
@@ -22,7 +22,7 @@ def bookings_emp(request):
     bookings_query_corp = RentalService.objects.filter(
         cust_id__cust_type='C'
     ).values(
-        'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+        'service_id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
         'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle_id__classid__class_name', 'vehicle_id__make', 'vehicle_id__model',
         'cust_id__corpcust__company_name', 'cust_id__corpcust__company_no', 'cust_id__corpcust__emp_id'
     )
@@ -41,8 +41,9 @@ def vehicle_details(request, vehicle_id):
     return render(request, 'vehicle_details.html', {'vehicle': vehicle})
 
 
-def booking_details(request, service_id):
-    return render(request, 'booking_details.html', {'service_id': service_id})
+def rentalservice_details(request, service_id):
+    rentalservice = RentalService.objects.get(service_id=service_id)
+    return render(request, 'rentalservice_details.html', {'rentalservice': rentalservice})
 
 
 def update_vehicle(request, vehicle_id):
@@ -55,3 +56,15 @@ def update_vehicle(request, vehicle_id):
     else:
         form = VehicleForm(instance=vehicle)
     return render(request, 'vehicle_details.html', {'form': form, 'vehicle': vehicle})
+
+
+def update_rentalservice(request, service_id):
+    rentalservice = get_object_or_404(RentalService, pk=service_id)
+    if request.method == 'POST':
+        form = RentalServiceForm(request.POST, instance=rentalservice)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('rentalservice_details', args=[service_id]))
+    else:
+        form = RentalServiceForm(instance=rentalservice)
+    return render(request, 'rentalservice_details.html', {'form': form, 'service': rentalservice})

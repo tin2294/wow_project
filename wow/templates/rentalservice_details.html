@@ -5,7 +5,7 @@
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Vehicle Details</title>
+        <title>Booking Details</title>
         <style>
             /* Basic styling */
             body {
@@ -31,64 +31,58 @@
             }
         </style>
     </head>
-    <body>
-
     <div class="container" id="details-table">
-        <h1>Vehicle Details</h1>
+        <h1>Booking Details</h1>
         <div class="details">
-            <label>VIN:</label>
-            <span>{{ vehicle.vin }}</span>
+            <label>Pickup Date:</label>
+            <span>{{ rentalservice.pickup_date }}</span>
         </div>
         <div class="details">
-            <label>Model:</label>
-            <span>{{ vehicle.model }}</span>
+            <label>Pickup Street:</label>
+            <span>{{ rentalservice.pickup_street }}</span>
         </div>
         <div class="details">
-            <label>Make:</label>
-            <span>{{ vehicle.make }}</span>
+            <label>Drop-off Date:</label>
+            <span>{{ rentalservice.dropoff_date }}</span>
         </div>
         <div class="details">
-            <label>Year:</label>
-            <span>{{ vehicle.year }}</span>
+            <label>Start Odometer:</label>
+            <span>{{ rentalservice.start_odometer }}</span>
         </div>
         <div class="details">
-            <label>License Plate State:</label>
-            <span>{{ vehicle.lp_state }}</span>
+            <label>End Odometer:</label>
+            <span>{{ rentalservice.end_odometer }}</span>
         </div>
-        <div class="details">
-            <label>License Plate Number:</label>
-            <span>{{ vehicle.lp_number }}</span>
-        </div>
-        <button onclick="showUpdateForm()" class="btn btn-primary">Update Vehicle</button>
-        <a href="{% url 'vehicles' %}" class="btn btn-info">Back to Vehicle List</a>
+        <button onclick="showUpdateForm()" class="btn btn-primary">Update Booking</button>
+        <a href="{% url 'bookings' %}" class="btn btn-info">Back to Bookings List</a>
     </div>
     <div id="update-form" class="update-form container">
-        <h1>Vehicle Details</h1>
-        <form method="POST" action="{% url 'update_vehicle' vehicle.vehicle_id %}">
+        <h1>Booking Details</h1>
+        <form method="POST" action="{% url 'update_rentalservice' rentalservice.service_id %}">
             {% csrf_token %}
             <div class="details">
-                <label for="vin">VIN:</label>
-                <input type="text" id="vin" name="vin" value="{{ vehicle.vin }}">
+                <label for="pickup_date">Pickup Date:</label>
+                <input type="datetime-local" id="pickup_date" name="pickup_date" value="{{ rentalservice.pickup_date|date:'Y-m-d\TH:i' }}">
             </div>
             <div class="details">
-                <label for="model">MODEL:</label>
-                <input type="text" id="model" name="model" value="{{ vehicle.model }}">
+                <label for="pickup_date">Pickup State:</label>
+                <input type="text" id="pickup_state" name="pickup_state" value="{{ rentalservice.pickup_state }}">
             </div>
             <div class="details">
-                <label for="make">MAKE:</label>
-                <input type="text" id="make" name="make" value="{{ vehicle.make }}">
+                <label for="pickup_street">Pickup Street:</label>
+                <input type="text" id="pickup_street" name="pickup_street" value="{{ rentalservice.pickup_street }}">
             </div>
             <div class="details">
-                <label for="year">YEAR:</label>
-                <input type="text" id="year" name="year" value="{{ vehicle.year }}">
+                <label for="dropoff_date">Drop-off Date:</label>
+                <input type="datetime-local" id="dropoff_date" name="dropoff_date" value="{{ rentalservice.dropoff_date|date:'Y-m-d\TH:i' }}">
             </div>
             <div class="details">
-                <label for="lp_number">LICENSE PLATE NUMBER:</label>
-                <input type="text" id="lp_number" name="lp_number" value="{{ vehicle.lp_number }}">
+                <label for="start_odometer">Start Odometer:</label>
+                <input type="text" id="start_odometer" name="start_odometer" value="{{ rentalservice.start_odometer }}">
             </div>
             <div class="details">
-                <label for="lp_state">PLATE STATE:</label>
-                <input type="text" id="lp_state" name="lp_state" value="{{ vehicle.lp_state }}">
+                <label for="end_odometer">End Odometer:</label>
+                <input type="text" id="end_odometer" name="end_odometer" value="{{ rentalservice.end_odometer }}">
             </div>
             <div class="details">
                 <button type="submit">Update</button>
@@ -96,10 +90,9 @@
             </div>
         </form>
     </div>
-    </body>
+
     <script>
         function showUpdateForm() {
-            console.log('hello')
             document.getElementById('details-table').style.display = 'none';
             document.getElementById('update-form').style.display = 'block';
         }

@@ -21,7 +21,7 @@
             </thead>
             <tbody>
                 {% for booking in bookings %}
-                <tr>
+                <tr class="clickable-row" onclick="window.location.href='{% url 'rentalservice_details' booking.service_id %}'" style="cursor: pointer;">
                     <td>{{ booking.pickup_street }}, {{ booking.pickup_state }}, {{ booking.pickup_zipcode }}, {{ booking.pickup_country }}</td>
                     <td>{{ booking.pickup_date }}</td>
                     <td>{{ booking.dropoff_date }}</td>
