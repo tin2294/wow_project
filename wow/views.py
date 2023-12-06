@@ -1,6 +1,8 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
+from .forms import VehicleForm
 
 
 # Create your views here.
@@ -27,6 +29,7 @@ def bookings_emp(request):
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
     return render(request, 'bookings_emp.html', {'bookings': bookings})
 
+
 def vehicles(request):
     vehicles_queryset = Vehicle.objects.all().values('vehicle_id', 'make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
     vehicles = list(vehicles_queryset)
@@ -37,5 +40,18 @@ def vehicle_details(request, vehicle_id):
     vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
     return render(request, 'vehicle_details.html', {'vehicle': vehicle})
 
+
 def booking_details(request, service_id):
     return render(request, 'booking_details.html', {'service_id': service_id})
+
+
+def update_vehicle(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+    if request.method == 'POST':
+        form = VehicleForm(request.POST, instance=vehicle)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('vehicle_details', args=[vehicle_id]))  # Replace with your URL
+    else:
+        form = VehicleForm(instance=vehicle)
+    return render(request, 'vehicle_details.html', {'form': form, 'vehicle': vehicle})

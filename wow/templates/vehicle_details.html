@@ -26,11 +26,14 @@
             .details label {
                 font-weight: bold;
             }
+            .update-form {
+                display: none; /* Hide the update form initially */
+            }
         </style>
     </head>
     <body>
 
-    <div class="container">
+    <div class="container" id="details-table">
         <h1>Vehicle Details</h1>
         <div class="details">
             <label>VIN:</label>
@@ -56,8 +59,54 @@
             <label>License Plate Number:</label>
             <span>{{ vehicle.lp_number }}</span>
         </div>
+        <button onclick="showUpdateForm()" class="btn btn-primary">Update Vehicle</button>
+        <a href="{% url 'vehicles' %}" class="btn btn-info">Back to Vehicle List</a>
     </div>
-
+    <div id="update-form" class="update-form container">
+        <h1>Vehicle Details</h1>
+        <form method="POST" action="{% url 'update_vehicle' vehicle.vehicle_id %}">
+            {% csrf_token %}
+            <div class="details">
+                <label for="vin">VIN:</label>
+                <input type="text" id="vin" name="vin" value="{{ vehicle.vin }}">
+            </div>
+            <div class="details">
+                <label for="model">MODEL:</label>
+                <input type="text" id="model" name="model" value="{{ vehicle.model }}">
+            </div>
+            <div class="details">
+                <label for="make">MAKE:</label>
+                <input type="text" id="make" name="make" value="{{ vehicle.make }}">
+            </div>
+            <div class="details">
+                <label for="year">YEAR:</label>
+                <input type="text" id="year" name="year" value="{{ vehicle.year }}">
+            </div>
+            <div class="details">
+                <label for="lp_number">LICENSE PLATE NUMBER:</label>
+                <input type="text" id="lp_number" name="lp_number" value="{{ vehicle.lp_number }}">
+            </div>
+            <div class="details">
+                <label for="lp_state">PLATE STATE:</label>
+                <input type="text" id="lp_state" name="lp_state" value="{{ vehicle.lp_state }}">
+            </div>
+            <div class="details">
+                <button type="submit">Update</button>
+                <button type="button" onclick="cancelUpdate()">Cancel</button>
+            </div>
+        </form>
+    </div>
     </body>
+    <script>
+        function showUpdateForm() {
+            console.log('hello')
+            document.getElementById('details-table').style.display = 'none';
+            document.getElementById('update-form').style.display = 'block';
+        }
+        function cancelUpdate() {
+            document.getElementById('update-form').style.display = 'none';
+            document.getElementById('details-table').style.display = 'block';
+        }
+    </script>
     </html>
 {% endblock %}
