@@ -28,13 +28,14 @@ def bookings_emp(request):
     return render(request, 'bookings_emp.html', {'bookings': bookings})
 
 def vehicles(request):
-    vehicles_queryset = Vehicle.objects.all().values('make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
+    vehicles_queryset = Vehicle.objects.all().values('vehicle_id', 'make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
     vehicles = list(vehicles_queryset)
     return render(request, 'vehicles.html', {'vehicles': vehicles})
 
 
 def vehicle_details(request, vehicle_id):
-    return render(request, 'vehicle_details.html', {'vehicle_id': vehicle_id})
+    vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
+    return render(request, 'vehicle_details.html', {'vehicle': vehicle})
 
 def booking_details(request, service_id):
     return render(request, 'booking_details.html', {'service_id': service_id})

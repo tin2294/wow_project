@@ -40,7 +40,7 @@
         </thead>
         <tbody>
             {% for vehicle in vehicles %}
-            <tr>
+            <tr class="clickable-row" onclick="window.location.href=`{% url 'vehicle_details' vehicle.vehicle_id %}`;" style="cursor: pointer;" >
                 <td>{{ vehicle.make }}</td>
                 <td>{{ vehicle.model }}</td>
                 <td>{{ vehicle.year }}</td>

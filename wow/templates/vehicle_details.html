@@ -1,1 +1,63 @@
-vehicle details
+{% extends 'base.html' %}
+
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Vehicle Details</title>
+        <style>
+            /* Basic styling */
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            .details {
+                margin-bottom: 10px;
+            }
+            .details label {
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+
+    <div class="container">
+        <h1>Vehicle Details</h1>
+        <div class="details">
+            <label>VIN:</label>
+            <span>{{ vehicle.vin }}</span>
+        </div>
+        <div class="details">
+            <label>Model:</label>
+            <span>{{ vehicle.model }}</span>
+        </div>
+        <div class="details">
+            <label>Make:</label>
+            <span>{{ vehicle.make }}</span>
+        </div>
+        <div class="details">
+            <label>Year:</label>
+            <span>{{ vehicle.year }}</span>
+        </div>
+        <div class="details">
+            <label>License Plate State:</label>
+            <span>{{ vehicle.lp_state }}</span>
+        </div>
+        <div class="details">
+            <label>License Plate Number:</label>
+            <span>{{ vehicle.lp_number }}</span>
+        </div>
+    </div>
+
+    </body>
+    </html>
+{% endblock %}
