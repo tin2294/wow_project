@@ -68,3 +68,16 @@ def update_rentalservice(request, service_id):
     else:
         form = RentalServiceForm(instance=rentalservice)
     return render(request, 'rentalservice_details.html', {'form': form, 'service': rentalservice})
+
+
+def create_rentalservice(request):
+    if request.method == 'POST':
+        form = RentalServiceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = RentalServiceForm()
+    return render(request, 'rentalservice_creation.html', {'form': form})
+
+

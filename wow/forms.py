@@ -11,6 +11,4 @@ class VehicleForm(forms.ModelForm):
 class RentalServiceForm(forms.ModelForm):
     class Meta:
         model = RentalService
-        fields = ['pickup_date', 'pickup_street', 'pickup_state', 'dropoff_date',
-                  'start_odometer', 'end_odometer'
-                  ]
+        fields = '__all__'
