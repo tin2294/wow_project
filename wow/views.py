@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from wow.models import RentalService, Customer
+from wow.models import RentalService, Customer, Vehicle, Vclass
 
 
 # Create your views here.
@@ -28,7 +28,10 @@ def bookings_emp(request):
     return render(request, 'bookings_emp.html', {'bookings': bookings})
 
 def vehicles(request):
-    return render(request, 'vehicles.html')
+    vehicles_queryset = Vehicle.objects.all().values('make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
+    vehicles = list(vehicles_queryset)
+    return render(request, 'vehicles.html', {'vehicles': vehicles})
+
 
 def vehicle_details(request, vehicle_id):
     return render(request, 'vehicle_details.html', {'vehicle_id': vehicle_id})
