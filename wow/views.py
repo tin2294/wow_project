@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
-from .forms import VehicleForm, RentalServiceForm
+from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
 
 
 # Create your views here.
@@ -61,12 +61,12 @@ def update_vehicle(request, vehicle_id):
 def update_rentalservice(request, service_id):
     rentalservice = get_object_or_404(RentalService, pk=service_id)
     if request.method == 'POST':
-        form = RentalServiceForm(request.POST, instance=rentalservice)
+        form = RentalServiceUpdateForm(request.POST, instance=rentalservice)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('rentalservice_details', args=[service_id]))
     else:
-        form = RentalServiceForm(instance=rentalservice)
+        form = RentalServiceUpdateForm(instance=rentalservice)
     return render(request, 'rentalservice_details.html', {'form': form, 'service': rentalservice})
 
 
@@ -79,5 +79,16 @@ def create_rentalservice(request):
     else:
         form = RentalServiceForm()
     return render(request, 'rentalservice_creation.html', {'form': form})
+
+
+def create_vehicle(request):
+    if request.method == 'POST':
+        form = VehicleCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('vehicles'))
+    else:
+        form = VehicleCreationForm()
+    return render(request, 'vehicle_creation.html', {'form': form})
 
 
