@@ -38,7 +38,8 @@ def vehicles(request):
 
 def vehicle_details(request, vehicle_id):
     vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
-    return render(request, 'vehicle_details.html', {'vehicle': vehicle})
+    form = RentalServiceForm()
+    return render(request, 'vehicle_details.html', {'vehicle': vehicle, 'form': form})
 
 
 def rentalservice_details(request, service_id):
@@ -74,7 +75,11 @@ def create_rentalservice(request):
     if request.method == 'POST':
         form = RentalServiceForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Get the next available service_id from the database
+            next_service_id = RentalService.objects.all().order_by('-service_id').first().service_id + 1
+            new_service = form.save(commit=False)
+            new_service.service_id = next_service_id
+            new_service.save()
             return HttpResponseRedirect(reverse('bookings'))
     else:
         form = RentalServiceForm()
@@ -106,3 +111,7 @@ def delete_rentalservice(request, service_id):
         rentalservice.delete()
         return HttpResponseRedirect(reverse('bookings'))
     return render(request, 'rentalservice_delete.html', {'rentalservice': rentalservice})
+
+
+def checkout(request):
+    return render(request, 'checkout.html')

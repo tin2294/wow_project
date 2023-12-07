@@ -1,5 +1,42 @@
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create Booking</button>
-</form>
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Booking</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .card {
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center">Create Booking</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="my-form">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Create Booking</button>
+                <a href="{% url 'bookings' %}" class="btn btn-outline-dark">Back to Bookings</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}
