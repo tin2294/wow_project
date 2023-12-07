@@ -26,7 +26,7 @@
             <h2 class="text-center">Create Booking</h2>
         </div>
         <div class="card-body">
-            <form method="POST" class="my-form">
+            <form method="POST" action="{% url 'checkout' %}" class="my-form">
                 {% csrf_token %}
                 {% for field in form %}
                     <div class="form-group">

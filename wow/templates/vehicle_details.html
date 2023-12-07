@@ -11,6 +11,7 @@
             body {
                 font-family: Arial, sans-serif;
                 margin: 20px;
+                flex-direction: column;
             }
             .container {
                 max-width: 600px;
@@ -32,6 +33,9 @@
         </style>
     </head>
     <body>
+    <div class="mb-2">
+        <a href="{% url 'vehicles' %}" class="btn btn-outline-secondary btn-small">Back to Vehicles</a>
+    </div>
     <div>
         <div class="container" id="details-table">
             <h1>Vehicle Details</h1>
@@ -59,9 +63,8 @@
                 <label>License Plate Number:</label>
                 <span>{{ vehicle.lp_number }}</span>
             </div>
+            <button onclick="toggleRentalServiceForm()" class="btn btn-success btn-small">Book!</button>
             <button onclick="showUpdateForm()" class="btn btn-primary btn-small">Update Vehicle</button>
-            <a href="{% url 'vehicles' %}" class="btn btn-info btn-small">Back to Vehicle List</a>
-            <button onclick="toggleRentalServiceForm()" class="btn btn-secondary btn-small">Book!</button>
         </div>
     </div>
     <div id="update-form" class="update-form container">
