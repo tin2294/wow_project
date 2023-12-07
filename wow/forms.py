@@ -1,10 +1,10 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.contrib.auth.models import User
-from .models import Customer, Employee
+from .models import Customer, Employee, Vehicle, RentalService
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .constants import EMPLOYEE_ACCESS_CODE
+from .constants import EMPLOYEE_ACCESS_CODE, STATES
 
 class AccountRegistrationForm(UserCreationForm):
     access_code_input = forms.CharField(required=False)
@@ -23,6 +23,7 @@ class AccountRegistrationForm(UserCreationForm):
             "is_staff": _("Registering as an Employee?")
         }
 
+
 class CustomerProfileCreationForm(forms.ModelForm):
     class Meta:
         model = Customer
@@ -36,6 +37,7 @@ class CustomerProfileCreationForm(forms.ModelForm):
             "cust_type"
         ]
 
+
 class EmployeeProfileCreationForm(forms.ModelForm):
     class Meta:
         model = Employee
@@ -43,10 +45,6 @@ class EmployeeProfileCreationForm(forms.ModelForm):
             "phone",
             "emp_role"
         ]
-
-from django import forms
-from .models import Customer, Vehicle, RentalService
-from .constants import STATES
 
 
 class VehicleForm(forms.ModelForm):

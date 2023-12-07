@@ -1,14 +1,18 @@
 import logging
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect, reverse
-from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
 from django.contrib.auth.decorators import login_required
-from .forms import AccountRegistrationForm, CustomerProfileCreationForm, EmployeeProfileCreationForm
-from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
+from .forms import (
+    AccountRegistrationForm,
+    CustomerProfileCreationForm,
+    EmployeeProfileCreationForm,
+    VehicleForm,
+    RentalServiceForm,
+    RentalServiceUpdateForm,
+    VehicleCreationForm
+)
 
 
 # Create your views here.
@@ -117,12 +121,12 @@ def vehicles(request):
 def vehicle_details(request, vehicle_id):
     vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
     form = RentalServiceForm()
-    return render(request, 'vehicle_details.html', {'vehicle': vehicle, 'form': form})
+    return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle, 'form': form})
 
 
 def rentalservice_details(request, service_id):
     rentalservice = RentalService.objects.get(service_id=service_id)
-    return render(request, 'rentalservice_details.html', {'rentalservice': rentalservice})
+    return render(request, 'wow/rentalservice_details.html', {'rentalservice': rentalservice})
 
 
 def update_vehicle(request, vehicle_id):
@@ -134,7 +138,7 @@ def update_vehicle(request, vehicle_id):
             return HttpResponseRedirect(reverse('vehicle_details', args=[vehicle_id]))  # Replace with your URL
     else:
         form = VehicleForm(instance=vehicle)
-    return render(request, 'vehicle_details.html', {'form': form, 'vehicle': vehicle})
+    return render(request, 'wow/vehicle_details.html', {'form': form, 'vehicle': vehicle})
 
 
 def update_rentalservice(request, service_id):
@@ -146,7 +150,7 @@ def update_rentalservice(request, service_id):
             return HttpResponseRedirect(reverse('rentalservice_details', args=[service_id]))
     else:
         form = RentalServiceUpdateForm(instance=rentalservice)
-    return render(request, 'rentalservice_details.html', {'form': form, 'service': rentalservice})
+    return render(request, 'wow/rentalservice_details.html', {'form': form, 'service': rentalservice})
 
 
 def create_rentalservice(request):
@@ -161,7 +165,7 @@ def create_rentalservice(request):
             return HttpResponseRedirect(reverse('bookings'))
     else:
         form = RentalServiceForm()
-    return render(request, 'rentalservice_creation.html', {'form': form})
+    return render(request, 'wow/rentalservice_creation.html', {'form': form})
 
 
 def create_vehicle(request):
@@ -172,7 +176,7 @@ def create_vehicle(request):
             return HttpResponseRedirect(reverse('vehicles'))
     else:
         form = VehicleCreationForm()
-    return render(request, 'vehicle_creation.html', {'form': form})
+    return render(request, 'wow/vehicle_creation.html', {'form': form})
 
 
 def delete_vehicle(request, vehicle_id):
@@ -180,7 +184,7 @@ def delete_vehicle(request, vehicle_id):
     if request.method == 'POST':
         vehicle.delete()
         return HttpResponseRedirect(reverse('vehicles'))
-    return render(request, 'vehicle_delete.html', {'vehicle': vehicle})
+    return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
 
 def delete_rentalservice(request, service_id):
@@ -188,8 +192,8 @@ def delete_rentalservice(request, service_id):
     if request.method == 'POST':
         rentalservice.delete()
         return HttpResponseRedirect(reverse('bookings'))
-    return render(request, 'rentalservice_delete.html', {'rentalservice': rentalservice})
+    return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
 
 def checkout(request):
-    return render(request, 'checkout.html')
+    return render(request, 'wow/checkout.html')
