@@ -50,3 +50,8 @@ STATES = (
     ('WI', 'Wisconsin'),
     ('WY', 'Wyoming'),
 )
+
+CUST_TYPE = (
+    ('I', 'Individual'),
+    ('C', 'Corporate'),
+)
