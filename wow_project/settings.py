@@ -77,7 +77,7 @@ WSGI_APPLICATION = "wow_project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": 'django.db.backends.mysql',
-        "NAME": 'wow',
+        "NAME": 'wow_restructure',
         "USER": 'root',
         "PASSWORD": '',
         "HOST": '127.0.0.1',
