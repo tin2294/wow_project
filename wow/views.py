@@ -27,24 +27,24 @@ def bookings_emp(request):
         'cust_id__corpcust__company_name', 'cust_id__corpcust__company_no', 'cust_id__corpcust__emp_id'
     )
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
-    return render(request, 'bookings_emp.html', {'bookings': bookings})
+    return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
 
 
 def vehicles(request):
     vehicles_queryset = Vehicle.objects.all().values('vehicle_id', 'make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
     vehicles = list(vehicles_queryset)
-    return render(request, 'vehicles.html', {'vehicles': vehicles})
+    return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
 
 def vehicle_details(request, vehicle_id):
     vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
     form = RentalServiceForm()
-    return render(request, 'vehicle_details.html', {'vehicle': vehicle, 'form': form})
+    return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle, 'form': form})
 
 
 def rentalservice_details(request, service_id):
     rentalservice = RentalService.objects.get(service_id=service_id)
-    return render(request, 'rentalservice_details.html', {'rentalservice': rentalservice})
+    return render(request, 'wow/rentalservice_details.html', {'rentalservice': rentalservice})
 
 
 def update_vehicle(request, vehicle_id):
@@ -56,7 +56,7 @@ def update_vehicle(request, vehicle_id):
             return HttpResponseRedirect(reverse('vehicle_details', args=[vehicle_id]))  # Replace with your URL
     else:
         form = VehicleForm(instance=vehicle)
-    return render(request, 'vehicle_details.html', {'form': form, 'vehicle': vehicle})
+    return render(request, 'wow/vehicle_details.html', {'form': form, 'vehicle': vehicle})
 
 
 def update_rentalservice(request, service_id):
@@ -68,7 +68,7 @@ def update_rentalservice(request, service_id):
             return HttpResponseRedirect(reverse('rentalservice_details', args=[service_id]))
     else:
         form = RentalServiceUpdateForm(instance=rentalservice)
-    return render(request, 'rentalservice_details.html', {'form': form, 'service': rentalservice})
+    return render(request, 'wow/rentalservice_details.html', {'form': form, 'service': rentalservice})
 
 
 def create_rentalservice(request):
@@ -83,7 +83,7 @@ def create_rentalservice(request):
             return HttpResponseRedirect(reverse('bookings'))
     else:
         form = RentalServiceForm()
-    return render(request, 'rentalservice_creation.html', {'form': form})
+    return render(request, 'wow/rentalservice_creation.html', {'form': form})
 
 
 def create_vehicle(request):
@@ -97,7 +97,7 @@ def create_vehicle(request):
             return HttpResponseRedirect(reverse('vehicles'))
     else:
         form = VehicleCreationForm()
-    return render(request, 'vehicle_creation.html', {'form': form})
+    return render(request, 'wow/vehicle_creation.html', {'form': form})
 
 
 def delete_vehicle(request, vehicle_id):
@@ -105,7 +105,7 @@ def delete_vehicle(request, vehicle_id):
     if request.method == 'POST':
         vehicle.delete()
         return HttpResponseRedirect(reverse('vehicles'))
-    return render(request, 'vehicle_delete.html', {'vehicle': vehicle})
+    return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
 
 def delete_rentalservice(request, service_id):
@@ -113,8 +113,8 @@ def delete_rentalservice(request, service_id):
     if request.method == 'POST':
         rentalservice.delete()
         return HttpResponseRedirect(reverse('bookings'))
-    return render(request, 'rentalservice_delete.html', {'rentalservice': rentalservice})
+    return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
 
 def checkout(request):
-    return render(request, 'checkout.html')
+    return render(request, 'wow/checkout.html')
