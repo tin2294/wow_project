@@ -1,61 +1,50 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Bookings</title>
-        <style>
-            /* Basic styling for the table */
-            table {
-                border-collapse: collapse;
-                width: 100%;
-            }
-            th, td {
-                border: 1px solid #dddddd;
-                text-align: left;
-                padding: 8px;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-        </style>
-    </head>
-    <body>
-
-    <h2>Bookings</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Pickup Address</th>
-                <th>Pickup Date</th>
-                <th>Drop-off Date</th>
-                <th>Start Odometer</th>
-                <th>End Odometer</th>
-                <th>Vehicle</th>
-                <th>Customer Name / Company Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for booking in bookings %}
-            <tr>
-                <td>{{ booking.pickup_street }}, {{ booking.pickup_state }}, {{ booking.pickup_zipcode }}, {{ booking.pickup_country }}</td>
-                <td>{{ booking.pickup_date }}</td>
-                <td>{{ booking.dropoff_date }}</td>
-                <td>{{ booking.start_odometer }}</td>
-                <td>{{ booking.end_odometer }}</td>
-                <td>{{ booking.vehicle_id__classid__class_name }}: {{ booking.vehicle_id__make }} {{ booking.vehicle_id__model }}</td>
-                {% if booking.cust_id__corpcust__company_name %}
-                    <td>{{ booking.cust_id__corpcust__company_name }}, {{ booking.cust_id__corpcust__company_no }}</td>
-                {% else %}
-                    <td>{{ booking.cust_id__indivcust__lname }}, {{ booking.cust_id__indivcust__fname }}</td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </body>
-    </html>
+    <div class="container pt-4">
+        <div class="d-flex flex-row-reverse mx-1">
+            <a href="{% url 'create_rentalservice' %}" class="btn btn-outline-info align-bottom ml-3">Create New Booking</a>
+            <a href="{% url 'vehicles' %}" class="btn btn-outline-dark">Vehicles</a>
+        </div>
+        <h2 class="pt-4">Bookings</h2>
+        <table class="table table-striped table-hover mt-4">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Pickup Address</th>
+                    <th>Pickup Date</th>
+                    <th>Drop-off Date</th>
+                    <th>Start Odometer</th>
+                    <th>End Odometer</th>
+                    <th>Vehicle</th>
+                    <th>Customer Name / Company Name</th>
+                    <th>Delete?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr class="clickable-row" onclick="window.location.href='{% url 'rentalservice_details' booking.service_id %}'" style="cursor: pointer;">
+                    <td>{{ booking.pickup_street }}, {{ booking.pickup_state }}, {{ booking.pickup_zipcode }}, {{ booking.pickup_country }}</td>
+                    <td>{{ booking.pickup_date }}</td>
+                    <td>{{ booking.dropoff_date }}</td>
+                    <td>{{ booking.start_odometer }}</td>
+                    <td>{{ booking.end_odometer }}</td>
+                    <td>{{ booking.vehicle_id__classid__class_name }}: {{ booking.vehicle_id__make }} {{ booking.vehicle_id__model }}</td>
+                    {% if booking.cust_id__corpcust__company_name %}
+                        <td>{{ booking.cust_id__corpcust__company_name }}, {{ booking.cust_id__corpcust__company_no }}</td>
+                    {% else %}
+                        <td>{{ booking.cust_id__indivcust__lname }}, {{ booking.cust_id__indivcust__fname }}</td>
+                    {% endif %}
+                    <td>
+                        <form action="{% url 'delete_rentalservice' booking.service_id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-small py-1 px-2">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

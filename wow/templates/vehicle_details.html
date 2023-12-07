@@ -1,1 +1,122 @@
-vehicle details
+{% extends 'base.html' %}
+
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Vehicle Details</title>
+        <style>
+            /* Basic styling */
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            .details {
+                margin-bottom: 10px;
+            }
+            .details label {
+                font-weight: bold;
+            }
+            .update-form {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+    <div>
+        <div class="container" id="details-table">
+            <h1>Vehicle Details</h1>
+            <div class="details">
+                <label>VIN:</label>
+                <span>{{ vehicle.vin }}</span>
+            </div>
+            <div class="details">
+                <label>Model:</label>
+                <span>{{ vehicle.model }}</span>
+            </div>
+            <div class="details">
+                <label>Make:</label>
+                <span>{{ vehicle.make }}</span>
+            </div>
+            <div class="details">
+                <label>Year:</label>
+                <span>{{ vehicle.year }}</span>
+            </div>
+            <div class="details">
+                <label>License Plate State:</label>
+                <span>{{ vehicle.lp_state }}</span>
+            </div>
+            <div class="details">
+                <label>License Plate Number:</label>
+                <span>{{ vehicle.lp_number }}</span>
+            </div>
+            <button onclick="showUpdateForm()" class="btn btn-primary btn-small">Update Vehicle</button>
+            <a href="{% url 'vehicles' %}" class="btn btn-info btn-small">Back to Vehicle List</a>
+            <button onclick="toggleRentalServiceForm()" class="btn btn-secondary btn-small">Book!</button>
+        </div>
+    </div>
+    <div id="update-form" class="update-form container">
+        <h1>Vehicle Details</h1>
+        <form method="POST" action="{% url 'update_vehicle' vehicle.vehicle_id %}">
+            {% csrf_token %}
+            <div class="details">
+                <label for="vin">VIN:</label>
+                <input type="text" id="vin" name="vin" value="{{ vehicle.vin }}">
+            </div>
+            <div class="details">
+                <label for="model">MODEL:</label>
+                <input type="text" id="model" name="model" value="{{ vehicle.model }}">
+            </div>
+            <div class="details">
+                <label for="make">MAKE:</label>
+                <input type="text" id="make" name="make" value="{{ vehicle.make }}">
+            </div>
+            <div class="details">
+                <label for="year">YEAR:</label>
+                <input type="text" id="year" name="year" value="{{ vehicle.year }}">
+            </div>
+            <div class="details">
+                <label for="lp_number">LICENSE PLATE NUMBER:</label>
+                <input type="text" id="lp_number" name="lp_number" value="{{ vehicle.lp_number }}">
+            </div>
+            <div class="details">
+                <label for="lp_state">PLATE STATE:</label>
+                <input type="text" id="lp_state" name="lp_state" value="{{ vehicle.lp_state }}">
+            </div>
+            <div class="details">
+                <button type="submit">Update</button>
+                <button type="button" onclick="cancelUpdate()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <div class="rental-service-form container" id="rental-service-form" style="display: none;">
+        <h1>Rental Service Creation</h1>
+        {% include 'rentalservice_creation.html' %}
+    </div>
+    </body>
+    <script>
+        function showUpdateForm() {
+            console.log('hello')
+            document.getElementById('details-table').style.display = 'none';
+            document.getElementById('update-form').style.display = 'block';
+        }
+        function cancelUpdate() {
+            document.getElementById('update-form').style.display = 'none';
+            document.getElementById('details-table').style.display = 'block';
+        }
+        function toggleRentalServiceForm() {
+            var rentalServiceForm = document.getElementById('rental-service-form');
+            rentalServiceForm.style.display = rentalServiceForm.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+    </html>
+{% endblock %}

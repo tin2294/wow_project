@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Booking Details</title>
+        <style>
+            /* Basic styling */
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            .details {
+                margin-bottom: 10px;
+            }
+            .details label {
+                font-weight: bold;
+            }
+            .update-form {
+                display: none;
+            }
+        </style>
+    </head>
+    <div class="container" id="details-table">
+        <h1>Booking Details</h1>
+        <div class="details">
+            <label>Pickup Date:</label>
+            <span>{{ rentalservice.pickup_date }}</span>
+        </div>
+        <div class="details">
+            <label>Pickup Street:</label>
+            <span>{{ rentalservice.pickup_street }}</span>
+        </div>
+        <div class="details">
+            <label>Drop-off Date:</label>
+            <span>{{ rentalservice.dropoff_date }}</span>
+        </div>
+        <div class="details">
+            <label>Start Odometer:</label>
+            <span>{{ rentalservice.start_odometer }}</span>
+        </div>
+        <div class="details">
+            <label>End Odometer:</label>
+            <span>{{ rentalservice.end_odometer }}</span>
+        </div>
+        <button onclick="showUpdateForm()" class="btn btn-primary">Update Booking</button>
+        <a href="{% url 'bookings' %}" class="btn btn-info">Back to Bookings List</a>
+    </div>
+    <div id="update-form" class="update-form container">
+        <h1>Booking Details</h1>
+        <form method="POST" action="{% url 'update_rentalservice' rentalservice.service_id %}">
+            {% csrf_token %}
+            <div class="details">
+                <label for="pickup_date">Pickup Date:</label>
+                <input type="datetime-local" id="pickup_date" name="pickup_date" value="{{ rentalservice.pickup_date|date:'Y-m-d\TH:i' }}">
+            </div>
+            <div class="details">
+                <label for="pickup_date">Pickup State:</label>
+                <input type="text" id="pickup_state" name="pickup_state" value="{{ rentalservice.pickup_state }}">
+            </div>
+            <div class="details">
+                <label for="pickup_street">Pickup Street:</label>
+                <input type="text" id="pickup_street" name="pickup_street" value="{{ rentalservice.pickup_street }}">
+            </div>
+            <div class="details">
+                <label for="dropoff_date">Drop-off Date:</label>
+                <input type="datetime-local" id="dropoff_date" name="dropoff_date" value="{{ rentalservice.dropoff_date|date:'Y-m-d\TH:i' }}">
+            </div>
+            <div class="details">
+                <label for="start_odometer">Start Odometer:</label>
+                <input type="text" id="start_odometer" name="start_odometer" value="{{ rentalservice.start_odometer }}">
+            </div>
+            <div class="details">
+                <label for="end_odometer">End Odometer:</label>
+                <input type="text" id="end_odometer" name="end_odometer" value="{{ rentalservice.end_odometer }}">
+            </div>
+            <div class="details">
+                <button type="submit">Update</button>
+                <button type="button" onclick="cancelUpdate()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function showUpdateForm() {
+            document.getElementById('details-table').style.display = 'none';
+            document.getElementById('update-form').style.display = 'block';
+        }
+        function cancelUpdate() {
+            document.getElementById('update-form').style.display = 'none';
+            document.getElementById('details-table').style.display = 'block';
+        }
+    </script>
+    </html>
+{% endblock %}

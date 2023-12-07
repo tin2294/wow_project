@@ -60,6 +60,9 @@ class Vehicle(models.Model):
         db_table = 'vehicle'
         db_table_comment = 'Vehicles'
 
+    def __str__(self):
+        return self.make
+
 
 class Customer(models.Model):
     cust_id = models.BigIntegerField(primary_key=True, db_comment='Customer ID')
