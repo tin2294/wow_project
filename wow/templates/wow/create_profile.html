@@ -1,0 +1,9 @@
+{% extends 'wow/base_form.html' %}
+{% block form %}
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock form %}

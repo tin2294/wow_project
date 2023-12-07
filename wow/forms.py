@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.contrib.auth.models import User
+from .models import Customer, Employee
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .constants import EMPLOYEE_ACCESS_CODE
@@ -21,6 +22,27 @@ class AccountRegistrationForm(UserCreationForm):
         labels = {
             "is_staff": _("Registering as an Employee?")
         }
+
+class CustomerProfileCreationForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = [
+            "address_houseno",
+            "address_street",
+            "address_state",
+            "address_city",
+            "address_zipcode",
+            "phone",
+            "cust_type"
+        ]
+
+class EmployeeProfileCreationForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = [
+            "phone",
+            "emp_role"
+        ]
 
 from django import forms
 from .models import Customer, Vehicle, RentalService

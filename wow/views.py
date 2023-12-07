@@ -1,10 +1,13 @@
+import logging
+from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from wow.models import RentalService, Customer, Vehicle, Vclass
-from .forms import AccountRegistrationForm
+from django.contrib.auth.decorators import login_required
+from .forms import AccountRegistrationForm, CustomerProfileCreationForm, EmployeeProfileCreationForm
 from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
 
 
@@ -14,11 +17,59 @@ def register_account(request):
         reg_form = AccountRegistrationForm(request.POST)
         if reg_form.is_valid():
             reg_form.save()
-            return redirect(reverse("login"))
+            reg_form_data = reg_form.cleaned_data
+            user_auth = authenticate(
+                username=reg_form_data["username"], password=reg_form_data["password1"]
+            )
+            login(request, user_auth)
+            if reg_form_data["is_staff"]:
+                return redirect(reverse("create_employee_profile"))
+            else:
+                return redirect(reverse("create_customer_profile"))
     else:
         reg_form = AccountRegistrationForm()
 
     return render(request, 'wow/register.html', {"form": reg_form})
+
+
+@login_required
+def create_customer_profile(request):
+    logger = logging.getLogger()
+    if not request.user.is_staff:
+        if request.method == "POST":
+            customer_form = CustomerProfileCreationForm(request.POST)
+            if customer_form.is_valid():
+                cust_instance = customer_form.save(commit=False)
+                cust_instance.user = request.user
+                cust_instance.save()
+                logger.info(cust_instance)
+                return redirect(reverse("view_profile"))
+        else:
+            customer_form = CustomerProfileCreationForm()
+            return render(request, 'wow/create_profile.html', {"form": customer_form})
+    else:
+        # Change this to a 403 later
+        return HttpResponse("You can't view this")
+
+
+@login_required
+def create_employee_profile(request):
+    logger = logging.getLogger()
+    if request.user.is_staff:
+        if request.method == "POST":
+            employee_form = EmployeeProfileCreationForm(request.POST)
+            if employee_form.is_valid():
+                emp_instance = employee_form.save(commit=False)
+                emp_instance.user = request.user
+                emp_instance.save()
+                logger.info(emp_instance)
+                return redirect(reverse("view_profile"))
+        else:
+            employee_form = EmployeeProfileCreationForm()
+            return render(request, 'wow/create_profile.html', {"form": employee_form})
+    else:
+        # Change this to a 403 later
+        return HttpResponse("You can't view this")
 
 
 def view_profile(request):

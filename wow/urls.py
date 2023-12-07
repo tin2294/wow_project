@@ -7,6 +7,8 @@ urlpatterns = [
     path("register/", views.register_account, name="register_account"),
     path("login/", LoginView.as_view(template_name="wow/login.html"), name="login"),
     path("logout/", LogoutView.as_view(template_name="wow/logout.html"), name="logout"),
+    path("create-customer-profile/", views.create_customer_profile, name="create_customer_profile"),
+    path("create-employee-profile/", views.create_employee_profile, name="create_employee_profile"),
     path("profile/", views.view_profile, name="view_profile"),
     path("bookings/", views.bookings_emp, name="bookings"),
     path("vehicles/", views.vehicles, name="vehicles"),
