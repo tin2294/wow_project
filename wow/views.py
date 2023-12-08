@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from wow.models import RentalService, Customer, Vehicle, Vclass
+from wow.models import RentalService, Customer, Vehicle, VClass
 from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
 
 
