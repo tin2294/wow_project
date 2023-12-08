@@ -50,3 +50,14 @@ STATES = (
     ('WI', 'Wisconsin'),
     ('WY', 'Wyoming'),
 )
+
+CUST_TYPE = (
+    ('I', 'Individual'),
+    ('C', 'Corporate'),
+)
+
+PAYMENT_METHOD_TYPE = (
+    ('C', 'Credit'),
+    ('D', 'Debit'),
+    ('G', 'Gift'),
+)

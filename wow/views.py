@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from wow.models import RentalService, Customer, Vehicle, Vclass
+from wow.models import RentalService, Customer, Vehicle, VClass
 from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
 
 
@@ -11,61 +11,63 @@ def index(request):
 
 
 def bookings_emp(request):
-    bookings_query_ind = RentalService.objects.filter(
-        cust_id__cust_type='I'
+    bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(
+        'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
     ).values(
-        'service_id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle_id__classid__class_name', 'vehicle_id__make', 'vehicle_id__model',
-        'cust_id__indivcust__fname', 'cust_id__indivcust__lname', 'cust_id__indivcust__licenseno',
-        'cust_id__indivcust__insurance_co', 'cust_id__indivcust__insurancep_no'
+        'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+        'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
+        'customer__user__first_name', 'customer__user__last_name'
     )
-    bookings_query_corp = RentalService.objects.filter(
-        cust_id__cust_type='C'
+
+    bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
+        'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
     ).values(
-        'service_id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle_id__classid__class_name', 'vehicle_id__make', 'vehicle_id__model',
-        'cust_id__corpcust__company_name', 'cust_id__corpcust__company_no', 'cust_id__corpcust__emp_id'
+        'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+        'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
     )
+
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
     return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
 
 
 def vehicles(request):
-    vehicles_queryset = Vehicle.objects.all().values('vehicle_id', 'make', 'model', 'year', 'classid__class_name', 'classid__daily_rate', 'classid__daily_mileage', 'classid__overage_rate')
+    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'class_id__class_name', 'class_id__daily_rate', 'class_id__daily_mileage', 'class_id__overage_rate')
     vehicles = list(vehicles_queryset)
     return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
 
-def vehicle_details(request, vehicle_id):
-    vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
+def vehicle_details(request, id):
+    vehicle = Vehicle.objects.get(id=id)
     form = RentalServiceForm()
     return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle, 'form': form})
 
 
-def rentalservice_details(request, service_id):
-    rentalservice = RentalService.objects.get(service_id=service_id)
+def rentalservice_details(request, id):
+    rentalservice = RentalService.objects.get(id=id)
     return render(request, 'wow/rentalservice_details.html', {'rentalservice': rentalservice})
 
 
 def update_vehicle(request, vehicle_id):
-    vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+    vehicle = get_object_or_404(Vehicle, pk=id)
     if request.method == 'POST':
         form = VehicleForm(request.POST, instance=vehicle)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('vehicle_details', args=[vehicle_id]))  # Replace with your URL
+            return HttpResponseRedirect(reverse('vehicle_details', args=[id]))
     else:
         form = VehicleForm(instance=vehicle)
     return render(request, 'wow/vehicle_details.html', {'form': form, 'vehicle': vehicle})
 
 
-def update_rentalservice(request, service_id):
-    rentalservice = get_object_or_404(RentalService, pk=service_id)
+def update_rentalservice(request, id):
+    rentalservice = get_object_or_404(RentalService, pk=id)
     if request.method == 'POST':
         form = RentalServiceUpdateForm(request.POST, instance=rentalservice)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('rentalservice_details', args=[service_id]))
+            return HttpResponseRedirect(reverse('rentalservice_details', args=[id]))
     else:
         form = RentalServiceUpdateForm(instance=rentalservice)
     return render(request, 'wow/rentalservice_details.html', {'form': form, 'service': rentalservice})
@@ -76,9 +78,9 @@ def create_rentalservice(request):
         form = RentalServiceForm(request.POST)
         if form.is_valid():
             # Get the next available service_id from the database
-            next_service_id = RentalService.objects.all().order_by('-service_id').first().service_id + 1
+            next_service_id = RentalService.objects.all().order_by('-id').first().id + 1
             new_service = form.save(commit=False)
-            new_service.service_id = next_service_id
+            new_service.id = next_service_id
             new_service.save()
             return HttpResponseRedirect(reverse('bookings'))
     else:
@@ -90,9 +92,9 @@ def create_vehicle(request):
     if request.method == 'POST':
         form = VehicleCreationForm(request.POST)
         if form.is_valid():
-            next_vehicle_id = RentalService.objects.all().order_by('-vehicle_id').first().vehicle_id + 1
+            next_vehicle_id = Vehicle.objects.all().order_by('-id').first().id + 1
             new_vehicle = form.save(commit=False)
-            new_vehicle.vehicle_id = next_vehicle_id
+            new_vehicle.id = next_vehicle_id
             new_vehicle.save()
             return HttpResponseRedirect(reverse('vehicles'))
     else:
@@ -100,16 +102,16 @@ def create_vehicle(request):
     return render(request, 'wow/vehicle_creation.html', {'form': form})
 
 
-def delete_vehicle(request, vehicle_id):
-    vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+def delete_vehicle(request, id):
+    vehicle = get_object_or_404(Vehicle, pk=id)
     if request.method == 'POST':
         vehicle.delete()
         return HttpResponseRedirect(reverse('vehicles'))
     return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
 
-def delete_rentalservice(request, service_id):
-    rentalservice = get_object_or_404(RentalService, pk=service_id)
+def delete_rentalservice(request, id):
+    rentalservice = get_object_or_404(RentalService, pk=id)
     if request.method == 'POST':
         rentalservice.delete()
         return HttpResponseRedirect(reverse('bookings'))

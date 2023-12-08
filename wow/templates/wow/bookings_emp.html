@@ -29,10 +29,10 @@
                     <td>{{ booking.start_odometer }}</td>
                     <td>{{ booking.end_odometer }}</td>
                     <td>{{ booking.vehicle_id__classid__class_name }}: {{ booking.vehicle_id__make }} {{ booking.vehicle_id__model }}</td>
-                    {% if booking.cust_id__corpcust__company_name %}
-                        <td>{{ booking.cust_id__corpcust__company_name }}, {{ booking.cust_id__corpcust__company_no }}</td>
+                    {% if booking.customer_id__corpcust__company_name %}
+                        <td>{{ booking.customer_id__corpcust__company_name }}, {{ booking.customer_id__corpcust__company_no }}</td>
                     {% else %}
-                        <td>{{ booking.cust_id__indivcust__lname }}, {{ booking.cust_id__indivcust__fname }}</td>
+                        <td>{{ booking.customer_id__indivcust__lname }}, {{ booking.customer_id__indivcust__fname }}</td>
                     {% endif %}
                     <td>
                         <form action="{% url 'delete_rentalservice' booking.service_id %}" method="post">
