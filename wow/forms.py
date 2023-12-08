@@ -1,6 +1,27 @@
 from django import forms
-from .models import Customer, Vehicle, RentalService, Office, Vclass
+from django.contrib.auth.forms import UserCreationForm
+from .models import Customer, Vehicle, RentalService, VClass, Office
 from .constants import STATES
+from django.contrib.auth.models import User
+
+class AccountRegistrationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "email"]
+
+
+class CustomerProfileCreationForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = [
+            "address_houseno",
+            "address_street",
+            "address_state",
+            "address_city",
+            "address_zipcode",
+            "phone",
+            "cust_type"
+        ]
 
 
 class VehicleForm(forms.ModelForm):
@@ -43,7 +64,7 @@ class RentalServiceUpdateForm(forms.ModelForm):
 
 
 class VehicleCreationForm(forms.ModelForm):
-    classid = forms.ModelChoiceField(queryset=Vclass.objects.all(), label='Type of Vehicle')
+    classid = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
     office = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
 
     def __init__(self, *args, **kwargs):
