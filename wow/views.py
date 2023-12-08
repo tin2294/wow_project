@@ -90,7 +90,10 @@ def create_vehicle(request):
     if request.method == 'POST':
         form = VehicleCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            next_vehicle_id = RentalService.objects.all().order_by('-vehicle_id').first().vehicle_id + 1
+            new_vehicle = form.save(commit=False)
+            new_vehicle.vehicle_id = next_vehicle_id
+            new_vehicle.save()
             return HttpResponseRedirect(reverse('vehicles'))
     else:
         form = VehicleCreationForm()

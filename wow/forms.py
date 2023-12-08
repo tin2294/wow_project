@@ -1,5 +1,5 @@
 from django import forms
-from .models import Customer, Vehicle, RentalService
+from .models import Customer, Vehicle, RentalService, Office, Vclass
 from .constants import STATES
 
 
@@ -43,6 +43,21 @@ class RentalServiceUpdateForm(forms.ModelForm):
 
 
 class VehicleCreationForm(forms.ModelForm):
+    classid = forms.ModelChoiceField(queryset=Vclass.objects.all(), label='Type of Vehicle')
+    office = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
+
+    def __init__(self, *args, **kwargs):
+        super(VehicleCreationForm, self).__init__(*args, **kwargs)
+        self.fields['classid'].label_from_instance = self.get_class
+        self.fields['office'].label_from_instance = self.get_office
+
+    def get_class(self, obj):
+        return f"{obj.class_name}, ${obj.daily_rate}"
+
+    def get_office(self, obj):
+        return f"{obj.address_houseno} {obj.address_street}, {obj.address_city}, {obj.address_zipcode}, {obj.address_state}"
+
     class Meta:
         model = Vehicle
-        fields = '__all__'
+        exclude = ['vehicle_id']
+
