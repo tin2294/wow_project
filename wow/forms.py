@@ -3,9 +3,6 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import Customer, Vehicle, RentalService
 from .constants import STATES
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-from .models import Customer
 
 class AccountRegistrationForm(UserCreationForm):
     class Meta:
