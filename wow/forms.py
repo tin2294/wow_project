@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService
+from .models import Customer, Vehicle, RentalService, VClass, Office
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -64,7 +64,7 @@ class RentalServiceUpdateForm(forms.ModelForm):
 
 
 class VehicleCreationForm(forms.ModelForm):
-    classid = forms.ModelChoiceField(queryset=Vclass.objects.all(), label='Type of Vehicle')
+    classid = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
     office = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
 
     def __init__(self, *args, **kwargs):
