@@ -1,14 +1,75 @@
-from django.shortcuts import render, get_object_or_404
+import logging
+from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from wow.models import RentalService, Customer, Vehicle, VClass
-from .forms import VehicleForm, RentalServiceForm, RentalServiceUpdateForm, VehicleCreationForm
+from .forms import (
+    VehicleForm,
+    RentalServiceForm,
+    RentalServiceUpdateForm,
+    VehicleCreationForm,
+    AccountRegistrationForm,
+    CustomerProfileCreationForm,
+)
 
+"""
+If we want to designate a view as staff only, we can use the following import
+from django.contrib.admin.views.decorators import staff_member_required
+Then decorate the view as follows
+@staff_member_required
+def view_function(request):
+    blah blah
+"""
 
 # Create your views here.
 def index(request):
     return HttpResponse("WOW Index")
 
+### Profile and User Related Views ###
+def register_account(request):
+    if request.method == "POST":
+        reg_form = AccountRegistrationForm(request.POST)
+        if reg_form.is_valid():
+            reg_form.save()
+            reg_form_data = reg_form.cleaned_data
+            user_auth = authenticate(
+                username=reg_form_data["username"], password=reg_form_data["password1"]
+            )
+            login(request, user_auth)
+            return redirect(reverse("create_profile"))
+    else:
+        reg_form = AccountRegistrationForm()
+
+    return render(request, 'wow/register.html', {"form": reg_form})
+
+
+def view_profile(request):
+    user_instance = request.user
+    context = {
+        "first_name": user_instance.first_name,
+        "last_name": user_instance.last_name,
+        "email": user_instance.email,
+        "is_staff": user_instance.is_staff,
+        "account_type": user_instance.customer.cust_type,
+    }
+    return render(request, 'wow/view_profile.html', context)
+
+
+def create_profile(request):
+    logger = logging.getLogger()
+    if request.method == "POST":
+        customer_form = CustomerProfileCreationForm(request.POST)
+        if customer_form.is_valid():
+            cust_instance = customer_form.save(commit=False)
+            cust_instance.user = request.user
+            cust_instance.save()
+            logger.info(cust_instance)
+            return redirect(reverse("view_profile"))
+    else:
+        customer_form = CustomerProfileCreationForm()
+
+    return render(request, 'wow/create_profile.html', {"form": customer_form})
 
 def bookings_emp(request):
     bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(

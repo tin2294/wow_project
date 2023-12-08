@@ -1,6 +1,30 @@
 from django import forms
-from .models import Customer, Vehicle, RentalService, Office, Vclass
+from django.contrib.auth.forms import UserCreationForm
+from .models import Customer, Vehicle, RentalService
 from .constants import STATES
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from .models import Customer
+
+class AccountRegistrationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "email"]
+
+
+class CustomerProfileCreationForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = [
+            "address_houseno",
+            "address_street",
+            "address_state",
+            "address_city",
+            "address_zipcode",
+            "phone",
+            "cust_type"
+        ]
 
 
 class VehicleForm(forms.ModelForm):
