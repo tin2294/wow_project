@@ -121,19 +121,19 @@ def bookings_emp(request):
     bookings_query_corp = []
     if user.is_staff:
         bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(
-            'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
+            'vehicle', 'vehicle__vclass', 'customer', 'customer__indivcust', 'customer__user'
         ).values(
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
             'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
             'customer__user__first_name', 'customer__user__last_name'
         )
 
         bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
-            'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
+            'vehicle', 'vehicle__vclass', 'customer', 'customer__corpcust'
         ).values(
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
             'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
         )
     else:
@@ -141,10 +141,10 @@ def bookings_emp(request):
             customer = user.customer
             if customer.cust_type == 'I':
                 bookings_query_ind = RentalService.objects.filter(customer=customer).select_related(
-                    'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
+                    'vehicle', 'vehicle__vclass', 'customer', 'customer__indivcust', 'customer__user'
                 ).values(
                     'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make',
+                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make',
                     'vehicle__model',
                     'customer__indivcust__license_no', 'customer__indivcust__insurance_co',
                     'customer__indivcust__insurance_policy_num',
@@ -153,10 +153,10 @@ def bookings_emp(request):
                 bookings_query_corp = []
             elif customer.cust_type == 'C':
                 bookings_query_corp = RentalService.objects.filter(customer=customer).select_related(
-                    'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
+                    'vehicle', 'vehicle__vclass', 'customer', 'customer__corpcust'
                 ).values(
                     'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make',
+                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make',
                     'vehicle__model',
                     'customer__corpcust__company_name', 'customer__corpcust__company_number',
                     'customer__corpcust__emp_id'
@@ -168,7 +168,7 @@ def bookings_emp(request):
 
 
 def vehicles(request):
-    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'class_id__class_name', 'class_id__daily_rate', 'class_id__daily_mileage', 'class_id__overage_rate')
+    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'vclass__class_name', 'vclass__daily_rate', 'vclass__daily_mileage', 'vclass__overage_rate')
     vehicles = list(vehicles_queryset)
     return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
