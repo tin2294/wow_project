@@ -13,7 +13,8 @@ from .forms import (
     CustomerProfileCreationForm,
     CorpCustCreationForm,
     IndivCustCreationForm,
-    RentalServiceCustVehInclForm
+    RentalServiceCustVehInclForm,
+    RentalServiceStaffVehInclForm
 )
 
 """
@@ -199,12 +200,31 @@ def book_vehicle(request, id):
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
 
 
+def book_vehicle_bo(request, id):
+    vehicle = Vehicle.objects.get(id=id)
+    if request.method == 'POST':
+        form = RentalServiceStaffVehInclForm(request.POST)
+        last_service = RentalService.objects.all().order_by('-id').first()
+        next_service_id = 1
+        if last_service:
+            next_service_id = last_service.id + 1
+        if form.is_valid():
+            new_service = form.save(commit=False)
+            new_service.id = next_service_id
+            new_service.vehicle = vehicle
+            new_service.save()
+            return redirect('checkout')
+    else:
+        form = RentalServiceStaffVehInclForm()
+    return render(request, 'wow/rentalservice_creation.html', {'form': form})
+
+
 def rentalservice_details(request, id):
     rentalservice = RentalService.objects.get(id=id)
     return render(request, 'wow/rentalservice_details.html', {'rentalservice': rentalservice})
 
 
-def update_vehicle(request, vehicle_id):
+def update_vehicle(request, id):
     vehicle = get_object_or_404(Vehicle, pk=id)
     if request.method == 'POST':
         form = VehicleForm(request.POST, instance=vehicle)

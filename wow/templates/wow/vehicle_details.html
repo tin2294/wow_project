@@ -60,7 +60,11 @@
                 <label>License Plate Number:</label>
                 <span>{{ vehicle.lp_number }}</span>
             </div>
-            <a href="{% url 'book_vehicle' vehicle.id %}" class="btn btn-success btn-small">Book this vehicle!</a>
+            {% if request.user.is_staff %}
+                <a href="{% url 'book_vehicle_bo' vehicle.id %}" class="btn btn-success btn-small">Book this vehicle!</a>
+            {% else %}
+                <a href="{% url 'book_vehicle' vehicle.id %}" class="btn btn-success btn-small">Book this vehicle!</a>
+            {% endif %}
             {% if user.is_staff %}
                 <button onclick="showUpdateForm()" class="btn btn-primary btn-small">Update Vehicle</button>
             {% endif %}

@@ -16,14 +16,15 @@ urlpatterns = [
     path("bookings/<str:id>", views.rentalservice_details, name="rentalservice_details"),
     path("vehicles/<str:id>", views.vehicle_details, name="vehicle_details"),
     path("vehicles/<str:id>/book", views.book_vehicle, name="book_vehicle"),
+    path("vehicles/<str:id>/bo/book", views.book_vehicle_bo, name="book_vehicle_bo"),
     path('update_vehicle/<int:id>/', views.update_vehicle, name='update_vehicle'),
     path('update_booking/<int:id>/', views.update_rentalservice, name='update_rentalservice'),
     path('create_booking/', views.create_rentalservice, name='create_rentalservice'),
     path('create_vehicle/', views.create_vehicle, name='create_vehicle'),
     # Template not complete
-    path('delete_vehicle/<int:vehicle_id>/', views.delete_vehicle, name='delete_vehicle'),
+    path('delete_vehicle/<int:id>/', views.delete_vehicle, name='delete_vehicle'),
     # Template not complete
-    path('delete_booking/<int:service_id>/', views.delete_rentalservice, name='delete_rentalservice'),
+    path('delete_booking/<int:id>/', views.delete_rentalservice, name='delete_rentalservice'),
     # Template exists but is not complete
     path('checkout', views.checkout, name='checkout')
 ]

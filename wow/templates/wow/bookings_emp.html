@@ -36,8 +36,8 @@
                         <td>
                             {% if booking.customer__user__last_name %}
                                 {{ booking.customer__user__first_name }}, {{ booking.customer__user__last_name }}
-                            {% elif booking.customer.corpcust %}
-                                {{ booking.customer__corpcust__company_name }}, {{ booking.customer__corpcust__company_no }}
+                            {% elif booking.customer__corpcust__company_name %}
+                                {{ booking.customer__corpcust__company_name }}, {{ booking.customer__corpcust__company_number }}
                             {% endif %}
                         </td>
                         <td>
