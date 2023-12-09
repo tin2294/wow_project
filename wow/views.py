@@ -129,7 +129,6 @@ def bookings_emp(request):
         'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
         'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
     )
-
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
     return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
 
@@ -179,12 +178,14 @@ def create_rentalservice(request):
     if request.method == 'POST':
         form = RentalServiceForm(request.POST)
         if form.is_valid():
-            # Get the next available service_id from the database
-            next_service_id = RentalService.objects.all().order_by('-id').first().id + 1
+            last_service = RentalService.objects.all().order_by('-id').first()
+            next_service_id = 1
+            if last_service:
+                next_service_id = last_service.id + 1
             new_service = form.save(commit=False)
             new_service.id = next_service_id
             new_service.save()
-            return HttpResponseRedirect(reverse('bookings'))
+            return redirect('checkout')
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -194,7 +195,10 @@ def create_vehicle(request):
     if request.method == 'POST':
         form = VehicleCreationForm(request.POST)
         if form.is_valid():
-            next_vehicle_id = Vehicle.objects.all().order_by('-id').first().id + 1
+            last_vehicle = Vehicle.objects.all().order_by('-id').first()
+            next_vehicle_id = 1
+            if last_vehicle:
+                next_vehicle_id = last_vehicle.id + 1
             new_vehicle = form.save(commit=False)
             new_vehicle.id = next_vehicle_id
             new_vehicle.save()
