@@ -45,11 +45,11 @@ class IndivCust(models.Model):
     insurance_policy_num = models.CharField(max_length=30, verbose_name="Insurance Policy Number")
 
 class CorpDiscount(models.Model):
-    customer = models.OneToOneField(CorpCust, on_delete=models.CASCADE)
+    customer = models.OneToOneField(CorpCust, on_delete=models.CASCADE, null=True, blank=True)
     percentage = models.DecimalField(default=0, max_digits=2, decimal_places=2)
 
 class IndivDiscount(models.Model):
-    customer = models.ForeignKey(IndivCust, on_delete=models.CASCADE)
+    customer = models.ForeignKey(IndivCust, on_delete=models.CASCADE, null=True, blank=True)
     percentage = models.DecimalField(default=0, max_digits=2, decimal_places=2)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
@@ -79,8 +79,8 @@ class Vehicle(models.Model):
     year = models.IntegerField(verbose_name="Vehicle Model Year")
     lp_state = models.CharField(max_length=2, choices=STATES, verbose_name="License Plate State")
     lp_number = models.CharField(max_length=8, verbose_name="License Plate Number")
-    class_id = models.ForeignKey(VClass, on_delete=models.CASCADE)
-    office_id = models.ForeignKey(Office, on_delete=models.SET_NULL, blank=True, null=True)
+    vclass = models.ForeignKey(VClass, on_delete=models.CASCADE)
+    office = models.ForeignKey(Office, on_delete=models.SET_NULL, blank=True, null=True)
 
 ## Rental Service
 
