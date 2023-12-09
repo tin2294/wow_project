@@ -26,7 +26,7 @@ def view_function(request):
 
 # Create your views here.
 def index(request):
-    return HttpResponse("WOW Index")
+    return render(request, 'wow/home.html', {})
 
 ### Profile and User Related Views ###
 def register_account(request):
