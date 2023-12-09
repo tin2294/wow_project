@@ -12,7 +12,8 @@ from .forms import (
     AccountRegistrationForm,
     CustomerProfileCreationForm,
     CorpCustCreationForm,
-    IndivCustCreationForm
+    IndivCustCreationForm,
+    RentalServiceCustVehInclForm
 )
 
 """
@@ -53,7 +54,7 @@ def view_profile(request):
         "last_name": user_instance.last_name,
         "email": user_instance.email,
         "is_staff": user_instance.is_staff,
-        "account_type": user_instance.customer.cust_type,
+        "account_type": user_instance.customer.cust_type if hasattr(user_instance, 'customer') else "Staff",
     }
     return render(request, 'wow/view_profile.html', context)
 
@@ -106,6 +107,7 @@ def create_corp_cust(request):
                 corp_cust_instance = corp_cust_form.save(commit=False)
                 corp_cust_instance.customer = cust_instance
                 corp_cust_instance.save()
+                return redirect(reverse("view_profile"))
         else:
             corp_cust_form = CorpCustCreationForm()
 
@@ -113,22 +115,53 @@ def create_corp_cust(request):
 
 
 def bookings_emp(request):
-    bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(
-        'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
-    ).values(
-        'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
-        'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
-        'customer__user__first_name', 'customer__user__last_name'
-    )
+    user = request.user
+    bookings_query_ind = []
+    bookings_query_corp = []
+    if user.is_staff:
+        bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(
+            'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
+        ).values(
+            'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+            'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
+            'customer__user__first_name', 'customer__user__last_name'
+        )
 
-    bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
-        'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
-    ).values(
-        'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
-        'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
-        'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
-    )
+        bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
+            'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
+        ).values(
+            'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+            'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
+            'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
+        )
+    else:
+        if hasattr(user, 'customer'):
+            customer = user.customer
+            if customer.cust_type == 'I':
+                bookings_query_ind = RentalService.objects.filter(customer=customer).select_related(
+                    'vehicle', 'vehicle__class_id', 'customer', 'customer__indivcust', 'customer__user'
+                ).values(
+                    'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make',
+                    'vehicle__model',
+                    'customer__indivcust__license_no', 'customer__indivcust__insurance_co',
+                    'customer__indivcust__insurance_policy_num',
+                    'customer__user__first_name', 'customer__user__last_name'
+                )
+                bookings_query_corp = []
+            elif customer.cust_type == 'C':
+                bookings_query_corp = RentalService.objects.filter(customer=customer).select_related(
+                    'vehicle', 'vehicle__class_id', 'customer', 'customer__corpcust'
+                ).values(
+                    'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
+                    'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make',
+                    'vehicle__model',
+                    'customer__corpcust__company_name', 'customer__corpcust__company_number',
+                    'customer__corpcust__emp_id'
+                )
+                bookings_query_ind = []
+
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
     return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
 
@@ -141,8 +174,29 @@ def vehicles(request):
 
 def vehicle_details(request, id):
     vehicle = Vehicle.objects.get(id=id)
-    form = RentalServiceForm()
-    return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle, 'form': form})
+    return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle})
+
+
+def book_vehicle(request, id):
+    user = request.user
+    vehicle = Vehicle.objects.get(id=id)
+    if request.method == 'POST':
+        form = RentalServiceCustVehInclForm(request.POST)
+        last_service = RentalService.objects.all().order_by('-id').first()
+        next_service_id = 1
+        if last_service:
+            next_service_id = last_service.id + 1
+        if form.is_valid():
+            if user.customer:
+                new_service = form.save(commit=False)
+                new_service.id = next_service_id
+                new_service.customer = user.customer
+                new_service.vehicle = vehicle
+                new_service.save()
+                return redirect('checkout')
+    else:
+        form = RentalServiceCustVehInclForm()
+    return render(request, 'wow/rentalservice_creation.html', {'form': form})
 
 
 def rentalservice_details(request, id):
@@ -175,17 +229,19 @@ def update_rentalservice(request, id):
 
 
 def create_rentalservice(request):
+    user = request.user
     if request.method == 'POST':
         form = RentalServiceForm(request.POST)
         if form.is_valid():
-            last_service = RentalService.objects.all().order_by('-id').first()
-            next_service_id = 1
-            if last_service:
-                next_service_id = last_service.id + 1
-            new_service = form.save(commit=False)
-            new_service.id = next_service_id
-            new_service.save()
-            return redirect('checkout')
+            if user.is_staff:
+                last_service = RentalService.objects.all().order_by('-id').first()
+                next_service_id = 1
+                if last_service:
+                    next_service_id = last_service.id + 1
+                new_service = form.save(commit=False)
+                new_service.id = next_service_id
+                new_service.save()
+                return redirect('checkout')
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})

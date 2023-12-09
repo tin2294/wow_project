@@ -2,9 +2,11 @@
 
 {% block content %}
     <div class="container pt-4">
-        <div class="d-flex flex-row-reverse mx-1">
-            <a href="{% url 'create_vehicle' %}" class="btn btn-outline-info align-bottom ml-3">Create New Vehicle</a>
-        </div>
+        {% if user.is_staff %}
+            <div class="d-flex flex-row-reverse mx-1">
+                <a href="{% url 'create_vehicle' %}" class="btn btn-outline-info align-bottom ml-3">Create New Vehicle</a>
+            </div>
+        {% endif %}
         <h2 class="pt-4">Vehicles</h2>
 
         <table class="table table-striped table-hover mt-4">
@@ -17,7 +19,9 @@
                     <th>Daily Rate</th>
                     <th>Daily Mileage</th>
                     <th>Overage Rate</th>
-                    <th>Delete?</th>
+                    {% if user.is_staff %}
+                        <th>Delete?</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -30,14 +34,16 @@
                     <td>{{ vehicle.class_id__daily_rate }}</td>
                     <td>{{ vehicle.class_id__daily_mileage }}</td>
                     <td>{{ vehicle.class_id__overage_rate }}</td>
-                    <td>
-                        <form action="{% url 'delete_vehicle' vehicle.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-danger btn-small py-1 px-2">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
+                    {% if user.is_staff %}
+                        <td>
+                            <form action="{% url 'delete_vehicle' vehicle.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-small py-1 px-2">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

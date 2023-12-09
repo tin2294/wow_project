@@ -74,6 +74,17 @@ class RentalServiceForm(forms.ModelForm):
         exclude = ['id']
 
 
+class RentalServiceCustVehInclForm(forms.ModelForm):
+    pickup_state = forms.ChoiceField(choices=STATES)
+
+    def __init__(self, *args, **kwargs):
+        super(RentalServiceCustVehInclForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = RentalService
+        exclude = ['id', 'customer', 'vehicle']
+
+
 class RentalServiceUpdateForm(forms.ModelForm):
     class Meta:
         model = RentalService

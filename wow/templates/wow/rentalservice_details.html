@@ -54,11 +54,10 @@
             <span>{{ rentalservice.end_odometer }}</span>
         </div>
         <button onclick="showUpdateForm()" class="btn btn-primary">Update Booking</button>
-        <a href="{% url 'bookings' %}" class="btn btn-info">Back to Bookings List</a>
     </div>
     <div id="update-form" class="update-form container">
         <h1>Booking Details</h1>
-        <form method="POST" action="{% url 'update_rentalservice' rentalservice.service_id %}">
+        <form method="POST" action="{% url 'update_rentalservice' rentalservice.id %}">
             {% csrf_token %}
             <div class="details">
                 <label for="pickup_date">Pickup Date:</label>

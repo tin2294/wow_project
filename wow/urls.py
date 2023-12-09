@@ -15,8 +15,9 @@ urlpatterns = [
     path("vehicles/", views.vehicles, name="vehicles"),
     path("bookings/<str:id>", views.rentalservice_details, name="rentalservice_details"),
     path("vehicles/<str:id>", views.vehicle_details, name="vehicle_details"),
-    path('update_vehicle/<int:vehicle_id>/', views.update_vehicle, name='update_vehicle'),
-    path('update_booking/<int:service_id>/', views.update_rentalservice, name='update_rentalservice'),
+    path("vehicles/<str:id>/book", views.book_vehicle, name="book_vehicle"),
+    path('update_vehicle/<int:id>/', views.update_vehicle, name='update_vehicle'),
+    path('update_booking/<int:id>/', views.update_rentalservice, name='update_rentalservice'),
     path('create_booking/', views.create_rentalservice, name='create_rentalservice'),
     path('create_vehicle/', views.create_vehicle, name='create_vehicle'),
     # Template not complete
