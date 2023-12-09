@@ -11,6 +11,8 @@ from .forms import (
     VehicleCreationForm,
     AccountRegistrationForm,
     CustomerProfileCreationForm,
+    CorpCustCreationForm,
+    IndivCustCreationForm
 )
 
 """
@@ -24,7 +26,7 @@ def view_function(request):
 
 # Create your views here.
 def index(request):
-    return HttpResponse("WOW Index")
+    return render(request, 'wow/home.html', {})
 
 ### Profile and User Related Views ###
 def register_account(request):
@@ -57,19 +59,58 @@ def view_profile(request):
 
 
 def create_profile(request):
-    logger = logging.getLogger()
     if request.method == "POST":
         customer_form = CustomerProfileCreationForm(request.POST)
         if customer_form.is_valid():
             cust_instance = customer_form.save(commit=False)
             cust_instance.user = request.user
             cust_instance.save()
-            logger.info(cust_instance)
-            return redirect(reverse("view_profile"))
+            if cust_instance.cust_type == "I":
+                return redirect(reverse("create_indiv_cust"))
+            elif cust_instance.cust_type == "C":
+                return redirect(reverse("create_corp_cust"))
+            else:
+                return redirect(reverse("view_profile"))
     else:
         customer_form = CustomerProfileCreationForm()
 
     return render(request, 'wow/create_profile.html', {"form": customer_form})
+
+
+def create_indiv_cust(request):
+    try:
+        cust_instance = request.user.customer
+    except Customer.DoesNotExist:
+        return redirect(reverse("create_profile"))
+    else:
+        if request.method == "POST":
+            indiv_cust_form = IndivCustCreationForm(request.POST)
+            if indiv_cust_form.is_valid():
+                indiv_cust_instance = indiv_cust_form.save(commit=False)
+                indiv_cust_instance.customer = cust_instance
+                return redirect(reverse("view_profile"))
+        else:
+            indiv_cust_form = IndivCustCreationForm()
+
+        return render(request, 'wow/create_indiv_profile.html', {"form": indiv_cust_form})
+
+def create_corp_cust(request):
+    try:
+        cust_instance = request.user.customer
+    except Customer.DoesNotExist:
+        return redirect(reverse("create_profile"))
+    else:
+        if request.method == "POST":
+            corp_cust_form = CorpCustCreationForm(request.POST)
+            if corp_cust_form.is_valid():
+                corp_cust_instance = corp_cust_form.save(commit=False)
+                corp_cust_instance.customer = cust_instance
+                corp_cust_instance.save()
+        else:
+            corp_cust_form = CorpCustCreationForm()
+
+    return render(request, 'wow/create_corp_profile.html', {"form": corp_cust_form})
+
 
 def bookings_emp(request):
     bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(
@@ -88,7 +129,6 @@ def bookings_emp(request):
         'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__class_id__class_name', 'vehicle__make', 'vehicle__model',
         'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
     )
-
     bookings = list(bookings_query_ind) + list(bookings_query_corp)
     return render(request, 'wow/bookings_emp.html', {'bookings': bookings})
 
@@ -138,12 +178,14 @@ def create_rentalservice(request):
     if request.method == 'POST':
         form = RentalServiceForm(request.POST)
         if form.is_valid():
-            # Get the next available service_id from the database
-            next_service_id = RentalService.objects.all().order_by('-id').first().id + 1
+            last_service = RentalService.objects.all().order_by('-id').first()
+            next_service_id = 1
+            if last_service:
+                next_service_id = last_service.id + 1
             new_service = form.save(commit=False)
             new_service.id = next_service_id
             new_service.save()
-            return HttpResponseRedirect(reverse('bookings'))
+            return redirect('checkout')
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -153,7 +195,10 @@ def create_vehicle(request):
     if request.method == 'POST':
         form = VehicleCreationForm(request.POST)
         if form.is_valid():
-            next_vehicle_id = Vehicle.objects.all().order_by('-id').first().id + 1
+            last_vehicle = Vehicle.objects.all().order_by('-id').first()
+            next_vehicle_id = 1
+            if last_vehicle:
+                next_vehicle_id = last_vehicle.id + 1
             new_vehicle = form.save(commit=False)
             new_vehicle.id = next_vehicle_id
             new_vehicle.save()

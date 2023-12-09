@@ -4,7 +4,6 @@
     <div class="container pt-4">
         <div class="d-flex flex-row-reverse mx-1">
             <a href="{% url 'create_vehicle' %}" class="btn btn-outline-info align-bottom ml-3">Create New Vehicle</a>
-            <a href="{% url 'bookings' %}" class="btn btn-outline-dark">Bookings</a>
         </div>
         <h2 class="pt-4">Vehicles</h2>
 
@@ -23,16 +22,16 @@
             </thead>
             <tbody>
                 {% for vehicle in vehicles %}
-                <tr class="clickable-row" onclick="window.location.href='{% url 'vehicle_details' vehicle.vehicle_id %}'" style="cursor: pointer;">
+                <tr class="clickable-row" onclick="window.location.href='{% url 'vehicle_details' vehicle.id %}'" style="cursor: pointer;">
                     <td>{{ vehicle.make }}</td>
                     <td>{{ vehicle.model }}</td>
                     <td>{{ vehicle.year }}</td>
-                    <td>{{ vehicle.classid__class_name }}</td>
-                    <td>{{ vehicle.classid__daily_rate }}</td>
-                    <td>{{ vehicle.classid__daily_mileage }}</td>
-                    <td>{{ vehicle.classid__overage_rate }}</td>
+                    <td>{{ vehicle.class_id__class_name }}</td>
+                    <td>{{ vehicle.class_id__daily_rate }}</td>
+                    <td>{{ vehicle.class_id__daily_mileage }}</td>
+                    <td>{{ vehicle.class_id__overage_rate }}</td>
                     <td>
-                        <form action="{% url 'delete_vehicle' vehicle.vehicle_id %}" method="post">
+                        <form action="{% url 'delete_vehicle' vehicle.id %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-small py-1 px-2">
                                 <i class="fas fa-trash"></i>
