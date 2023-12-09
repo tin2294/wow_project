@@ -11,6 +11,8 @@ from .forms import (
     VehicleCreationForm,
     AccountRegistrationForm,
     CustomerProfileCreationForm,
+    CorpCustCreationForm,
+    IndivCustCreationForm
 )
 
 """
@@ -57,19 +59,58 @@ def view_profile(request):
 
 
 def create_profile(request):
-    logger = logging.getLogger()
     if request.method == "POST":
         customer_form = CustomerProfileCreationForm(request.POST)
         if customer_form.is_valid():
             cust_instance = customer_form.save(commit=False)
             cust_instance.user = request.user
             cust_instance.save()
-            logger.info(cust_instance)
-            return redirect(reverse("view_profile"))
+            if cust_instance.cust_type == "I":
+                return redirect(reverse("create_indiv_cust"))
+            elif cust_instance.cust_type == "C":
+                return redirect(reverse("create_corp_cust"))
+            else:
+                return redirect(reverse("view_profile"))
     else:
         customer_form = CustomerProfileCreationForm()
 
     return render(request, 'wow/create_profile.html', {"form": customer_form})
+
+
+def create_indiv_cust(request):
+    try:
+        cust_instance = request.user.customer
+    except Customer.DoesNotExist:
+        return redirect(reverse("create_profile"))
+    else:
+        if request.method == "POST":
+            indiv_cust_form = IndivCustCreationForm(request.POST)
+            if indiv_cust_form.is_valid():
+                indiv_cust_instance = indiv_cust_form.save(commit=False)
+                indiv_cust_instance.customer = cust_instance
+                return redirect(reverse("view_profile"))
+        else:
+            indiv_cust_form = IndivCustCreationForm()
+
+        return render(request, 'wow/create_indiv_profile.html', {"form": indiv_cust_form})
+
+def create_corp_cust(request):
+    try:
+        cust_instance = request.user.customer
+    except Customer.DoesNotExist:
+        return redirect(reverse("create_profile"))
+    else:
+        if request.method == "POST":
+            corp_cust_form = CorpCustCreationForm(request.POST)
+            if corp_cust_form.is_valid():
+                corp_cust_instance = corp_cust_form.save(commit=False)
+                corp_cust_instance.customer = cust_instance
+                corp_cust_instance.save()
+        else:
+            corp_cust_form = CorpCustCreationForm()
+
+    return render(request, 'wow/create_corp_profile.html', {"form": corp_cust_form})
+
 
 def bookings_emp(request):
     bookings_query_ind = RentalService.objects.filter(customer__cust_type='I').select_related(

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService, VClass, Office
+from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -21,6 +21,25 @@ class CustomerProfileCreationForm(forms.ModelForm):
             "address_zipcode",
             "phone",
             "cust_type"
+        ]
+
+
+class CorpCustCreationForm(forms.ModelForm):
+    class Meta:
+        model = CorpCust
+        fields = [
+            "company_name",
+            "company_number",
+            "emp_id"
+        ]
+
+class IndivCustCreationForm(forms.ModelForm):
+    class Meta:
+        model = IndivCust
+        fields = [
+            "license_no",
+            "insurance_co",
+            "insurance_policy_num"
         ]
 
 
