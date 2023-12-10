@@ -1,9 +1,17 @@
 import logging
 from django.shortcuts import render, get_object_or_404, redirect, reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from wow.models import RentalService, Customer, Vehicle, VClass
+
+import json
+import random
+from datetime import datetime
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from wow.utils.bootstrap import BootStrapModelForm
+from wow.utils.pagination import Pagination
 from .forms import (
     VehicleForm,
     RentalServiceForm,
@@ -302,3 +310,107 @@ def delete_rentalservice(request, id):
 
 def checkout(request):
     return render(request, 'wow/checkout.html')
+
+
+
+
+class InvoiceModelForm(BootStrapModelForm):
+    class Meta:
+        model = models.Order
+        # fields = "__all__"
+        # fields = [""]
+        exclude = ["oid", 'admin']
+
+
+def invoice_list(request):
+    queryset = models.Invoice.objects.all().invoice_by('-id')
+    page_object = Pagination(request, queryset)
+    form = InvoiceModelForm()
+
+    context = {
+        'form': form,
+        "queryset": page_object.page_queryset,  # 分完页的数据
+        "page_string": page_object.html()  # 生成页码
+    }
+
+    return render(request, 'invoice_list.html', context)
+
+
+@csrf_exempt
+def invoice_add(request):
+    """ New Order（Ajax Request）"""
+    form = InvoiceModelForm(data=request.POST)
+    if form.is_valid():
+        # 订单号：额外增加一些不是用户输入的值（自己计算出来）
+        form.instance.oid = datetime.now().strftime("%Y%m%d%H%M%S") + str(random.randint(1000, 9999))
+
+        # 固定设置管理员ID，去哪里获取？
+        form.instance.admin_id = request.session["info"]["id"]
+
+        # 保存到数据库中
+        form.save()
+        return JsonResponse({"status": True})
+    return JsonResponse({"status": False, 'error': form.errors})
+
+
+def invoice_delete(request):
+    """ Delete Order"""
+    uid = request.GET.get('uid')
+    exists = models.Invoice.objects.filter(id=uid).exists()
+    if not exists:
+        return JsonResponse({"status": False, 'error': "Delete failure.The data does not exit"})
+
+    models.Invoice.objects.filter(id=uid).delete()
+    return JsonResponse({"status": True})
+
+
+def invoice_detail(request):
+    """ Obtain Order Details according to ID """
+    # 方式1
+    """
+    uid = request.GET.get("uid")
+    row_object = models.Order.objects.filter(id=uid).first()
+    if not row_object:
+        return JsonResponse({"status": False, 'error': "数据不存在。"})
+
+    # 从数据库中获取到一个对象 row_object
+    result = {
+        "status": True,
+        "data": {
+            "title": row_object.title,
+            "price": row_object.price,
+            "status": row_object.status,
+        }
+    }
+    return JsonResponse(result)
+    """
+
+    # 方式2
+    uid = request.GET.get("uid")
+    row_dict = models.Invoice.objects.filter(id=uid).values("title", 'price', 'status').first()
+    if not row_dict:
+        return JsonResponse({"status": False, 'error': "Data does not exit"})
+
+    # 从数据库中获取到一个对象 row_object
+    result = {
+        "status": True,
+        "data": row_dict
+    }
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def invoice_edit(request):
+    """ Edit Order """
+    uid = request.GET.get("uid")
+    row_object = models.Invoice.objects.filter(id=uid).first()
+    if not row_object:
+        return JsonResponse({"status": False, 'tips': "Data does not exit, please refresh the page"})
+
+    form = InvoiceModelForm(data=request.POST, instance=row_object)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({"status": True})
+
+    return JsonResponse({"status": False, 'error': form.errors})
+
