@@ -17,6 +17,7 @@ from .forms import (
     RentalServiceCustVehInclForm,
     RentalServiceStaffVehInclForm
 )
+from .functions import compute_invoice_amount
 
 """
 If we want to designate a view as staff only, we can use the following import
@@ -191,7 +192,7 @@ def book_vehicle(request, id):
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
-                return redirect('checkout')
+                return redirect('checkout', next_service_id)
     else:
         form = RentalServiceCustVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -205,7 +206,7 @@ def book_vehicle_bo(request, id):
             new_service = form.save(commit=False)
             new_service.vehicle = vehicle
             new_service.save()
-            return redirect('checkout')
+            return redirect('checkout', next_service_id)
     else:
         form = RentalServiceStaffVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -247,7 +248,7 @@ def create_rentalservice(request):
         if form.is_valid():
             if user.is_staff:
                 form.save()
-                return redirect('checkout')
+                return redirect('checkout', next_service_id)
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -271,6 +272,7 @@ def delete_vehicle(request, id):
         return HttpResponseRedirect(reverse('vehicles'))
     return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
+
 @login_required
 def delete_rentalservice(request, id):
     rentalservice = get_object_or_404(RentalService, pk=id)
@@ -279,10 +281,24 @@ def delete_rentalservice(request, id):
         return HttpResponseRedirect(reverse('bookings'))
     return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
-# Checkout with an existing payment method
+
 @login_required
 def checkout(request):
-    pass
+    service = RentalService.objects.get(id=id)
+    daily_rate = service.vehicle.vclass.daily_rate
+    overage_rate = service.vehicle.vclass.overage_rate
+    daily_mil = service.vehicle.vclass.daily_mileage
+    start_odom = service.start_odometer
+    end_odom = service.end_odometer
+    pickup_date = service.pickup_date
+    dropoff_date = service.dropoff_date
+    # subsitute with the right one
+    percentage = 0.5
+
+    amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
+    # create invoice
+    # payment info
+    return render(request, 'wow/checkout.html', {'inv_amount': amount})
 
 
 def return_vehicle(request, id):
