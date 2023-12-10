@@ -183,14 +183,9 @@ def book_vehicle(request, id):
     vehicle = Vehicle.objects.get(id=id)
     if request.method == 'POST':
         form = RentalServiceCustVehInclForm(request.POST)
-        last_service = RentalService.objects.all().order_by('-id').first()
-        next_service_id = 1
-        if last_service:
-            next_service_id = last_service.id + 1
         if form.is_valid():
             if user.customer:
                 new_service = form.save(commit=False)
-                new_service.id = next_service_id
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
@@ -204,13 +199,8 @@ def book_vehicle_bo(request, id):
     vehicle = Vehicle.objects.get(id=id)
     if request.method == 'POST':
         form = RentalServiceStaffVehInclForm(request.POST)
-        last_service = RentalService.objects.all().order_by('-id').first()
-        next_service_id = 1
-        if last_service:
-            next_service_id = last_service.id + 1
         if form.is_valid():
             new_service = form.save(commit=False)
-            new_service.id = next_service_id
             new_service.vehicle = vehicle
             new_service.save()
             return redirect('checkout')
