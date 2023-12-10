@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime # this is intentional don't change it to import datetime
 from django.contrib.auth.models import User
 from .constants import STATES, CUST_TYPE, PAYMENT_METHOD_TYPE
 
@@ -95,8 +96,15 @@ class RentalService(models.Model):
     pickup_date = models.DateTimeField(verbose_name="Pickup Date")
     dropoff_date = models.DateTimeField(verbose_name="Drop Off Date")
     start_odometer = models.IntegerField(verbose_name="Start Odometer Reading")
-    end_odometer = models.IntegerField(verbose_name="End Odometer Reading")
+    end_odometer = models.IntegerField(verbose_name="End Odometer Reading", null=True)
+    is_active = models.BooleanField(default=True)
 
+    def save(self, *args, **kwargs):
+        # When a RentalService instance concludes (is set to inactive), create an invoice for the trip
+        # based on start and end odometer
+        if not self.is_active:
+            Invoice.objects.create(service=self, invoice_date=datetime.now())
+        return super().save(*args, **kwargs)
 
 class Invoice(models.Model):
     service = models.ForeignKey(RentalService, on_delete=models.SET_NULL, null=True, blank=True)
@@ -104,24 +112,24 @@ class Invoice(models.Model):
 
 
 class Payment(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.DO_NOTHING)
+    invoice = models.ForeignKey(Invoice, on_delete=models.DO_NOTHING, null=True)
     card_number = models.CharField(max_length=20)
     payment_method = models.CharField(max_length=1, choices=PAYMENT_METHOD_TYPE)
 
 
-# class InvoiceCorpDiscount(models.Model):
-#     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-#     discount = models.ForeignKey(CorpDiscount, on_delete=models.CASCADE)
-#
-#     class Meta:
-#         unique_together = ['invoice', 'discount']
-#
-#
-# class InvoiceIndivDiscount(models.Model):
-#     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-#     discount = models.ForeignKey(IndivDiscount, on_delete=models.CASCADE)
-#
-#     class Meta:
-#         unique_together = ['invoice', 'discount']
+class InvoiceCorpDiscount(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    discount = models.ForeignKey(CorpDiscount, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ['invoice', 'discount']
+
+
+class InvoiceIndivDiscount(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    discount = models.ForeignKey(IndivDiscount, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ['invoice', 'discount']
 
 

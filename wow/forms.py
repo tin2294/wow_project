@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust
+from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -82,7 +82,7 @@ class RentalServiceCustVehInclForm(forms.ModelForm):
 
     class Meta:
         model = RentalService
-        exclude = ['id', 'customer', 'vehicle']
+        exclude = ['id', 'customer', 'vehicle', 'end_odometer', 'is_active']
 
 
 class RentalServiceStaffVehInclForm(forms.ModelForm):
@@ -109,7 +109,7 @@ class RentalServiceUpdateForm(forms.ModelForm):
     class Meta:
         model = RentalService
         fields = ['pickup_date', 'pickup_street', 'pickup_state', 'dropoff_date',
-                  'start_odometer', 'end_odometer'
+                  'end_odometer'
                   ]
 
 
@@ -131,4 +131,3 @@ class VehicleCreationForm(forms.ModelForm):
     class Meta:
         model = Vehicle
         exclude = ['id']
-

@@ -21,6 +21,8 @@
                         <th>Customer Name / Company Name</th>
                         <th>Delete?</th>
                     {% endif %}
+                    <th>Active?</th>
+                    <th>Return Vehicle</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +33,7 @@
                     <td>{{ booking.dropoff_date }}</td>
                     <td>{{ booking.start_odometer }}</td>
                     <td>{{ booking.end_odometer }}</td>
-                    <td>{{ booking.vehicle__class_id__class_name }}: {{ booking.vehicle__make }} {{ booking.vehicle__model }}</td>
+                    <td>{{ booking.vehicle__vclass__class_name }}: {{ booking.vehicle__make }} {{ booking.vehicle__model }}</td>
                     {% if user.is_staff %}
                         <td>
                             {% if booking.customer__user__last_name %}
@@ -49,6 +51,23 @@
                             </form>
                         </td>
                     {% endif %}
+                <td>
+                    {% if booking.is_active %}
+                        <i class="fas fa-circle" style="color: green;"></i>
+                    {% else %}
+                        <i class="fas fa-circle" style="color: red;"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if booking.is_active %}
+                        <form action="{% url 'return_vehicle' booking.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-info btn-small" onclick="return confirm('Are you sure you want to return this vehicle?');">Return</button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-secondary btn-small" disabled>Return</button>
+                    {% endif %}
+                </td>
                 </tr>
                 {% endfor %}
             </tbody>

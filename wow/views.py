@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from wow.models import RentalService, Customer, Vehicle, VClass
+from django.contrib.admin.views.decorators import staff_member_required
 from .forms import (
     VehicleForm,
     RentalServiceForm,
@@ -47,7 +48,7 @@ def register_account(request):
 
     return render(request, 'wow/register.html', {"form": reg_form})
 
-
+@login_required
 def view_profile(request):
     user_instance = request.user
     context = {
@@ -59,7 +60,7 @@ def view_profile(request):
     }
     return render(request, 'wow/view_profile.html', context)
 
-
+@login_required
 def create_profile(request):
     if request.method == "POST":
         customer_form = CustomerProfileCreationForm(request.POST)
@@ -78,7 +79,7 @@ def create_profile(request):
 
     return render(request, 'wow/create_profile.html', {"form": customer_form})
 
-
+@login_required
 def create_indiv_cust(request):
     try:
         cust_instance = request.user.customer
@@ -96,6 +97,7 @@ def create_indiv_cust(request):
 
         return render(request, 'wow/create_indiv_profile.html', {"form": indiv_cust_form})
 
+@login_required
 def create_corp_cust(request):
     try:
         cust_instance = request.user.customer
@@ -114,7 +116,7 @@ def create_corp_cust(request):
 
     return render(request, 'wow/create_corp_profile.html', {"form": corp_cust_form})
 
-
+@login_required
 def bookings_emp(request):
     user = request.user
     bookings_query_ind = []
@@ -126,7 +128,7 @@ def bookings_emp(request):
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
             'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
             'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
-            'customer__user__first_name', 'customer__user__last_name'
+            'customer__user__first_name', 'customer__user__last_name', 'is_active'
         )
 
         bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
@@ -134,7 +136,7 @@ def bookings_emp(request):
         ).values(
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
             'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
-            'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
+            'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id', 'is_active'
         )
     else:
         if hasattr(user, 'customer'):
@@ -148,7 +150,7 @@ def bookings_emp(request):
                     'vehicle__model',
                     'customer__indivcust__license_no', 'customer__indivcust__insurance_co',
                     'customer__indivcust__insurance_policy_num',
-                    'customer__user__first_name', 'customer__user__last_name'
+                    'customer__user__first_name', 'customer__user__last_name', 'is_active'
                 )
                 bookings_query_corp = []
             elif customer.cust_type == 'C':
@@ -159,7 +161,7 @@ def bookings_emp(request):
                     'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make',
                     'vehicle__model',
                     'customer__corpcust__company_name', 'customer__corpcust__company_number',
-                    'customer__corpcust__emp_id'
+                    'customer__corpcust__emp_id', 'is_active'
                 )
                 bookings_query_ind = []
 
@@ -177,20 +179,15 @@ def vehicle_details(request, id):
     vehicle = Vehicle.objects.get(id=id)
     return render(request, 'wow/vehicle_details.html', {'vehicle': vehicle})
 
-
+@login_required
 def book_vehicle(request, id):
     user = request.user
     vehicle = Vehicle.objects.get(id=id)
     if request.method == 'POST':
         form = RentalServiceCustVehInclForm(request.POST)
-        last_service = RentalService.objects.all().order_by('-id').first()
-        next_service_id = 1
-        if last_service:
-            next_service_id = last_service.id + 1
         if form.is_valid():
             if user.customer:
                 new_service = form.save(commit=False)
-                new_service.id = next_service_id
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
@@ -204,13 +201,8 @@ def book_vehicle_bo(request, id):
     vehicle = Vehicle.objects.get(id=id)
     if request.method == 'POST':
         form = RentalServiceStaffVehInclForm(request.POST)
-        last_service = RentalService.objects.all().order_by('-id').first()
-        next_service_id = 1
-        if last_service:
-            next_service_id = last_service.id + 1
         if form.is_valid():
             new_service = form.save(commit=False)
-            new_service.id = next_service_id
             new_service.vehicle = vehicle
             new_service.save()
             return redirect('checkout')
@@ -223,7 +215,7 @@ def rentalservice_details(request, id):
     rentalservice = RentalService.objects.get(id=id)
     return render(request, 'wow/rentalservice_details.html', {'rentalservice': rentalservice})
 
-
+@staff_member_required
 def update_vehicle(request, id):
     vehicle = get_object_or_404(Vehicle, pk=id)
     if request.method == 'POST':
@@ -235,7 +227,7 @@ def update_vehicle(request, id):
         form = VehicleForm(instance=vehicle)
     return render(request, 'wow/vehicle_details.html', {'form': form, 'vehicle': vehicle})
 
-
+@login_required
 def update_rentalservice(request, id):
     rentalservice = get_object_or_404(RentalService, pk=id)
     if request.method == 'POST':
@@ -247,43 +239,31 @@ def update_rentalservice(request, id):
         form = RentalServiceUpdateForm(instance=rentalservice)
     return render(request, 'wow/rentalservice_details.html', {'form': form, 'service': rentalservice})
 
-
+@login_required
 def create_rentalservice(request):
     user = request.user
     if request.method == 'POST':
         form = RentalServiceForm(request.POST)
         if form.is_valid():
             if user.is_staff:
-                last_service = RentalService.objects.all().order_by('-id').first()
-                next_service_id = 1
-                if last_service:
-                    next_service_id = last_service.id + 1
-                new_service = form.save(commit=False)
-                new_service.id = next_service_id
-                new_service.save()
+                form.save()
                 return redirect('checkout')
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
 
-
+@staff_member_required
 def create_vehicle(request):
     if request.method == 'POST':
         form = VehicleCreationForm(request.POST)
         if form.is_valid():
-            last_vehicle = Vehicle.objects.all().order_by('-id').first()
-            next_vehicle_id = 1
-            if last_vehicle:
-                next_vehicle_id = last_vehicle.id + 1
-            new_vehicle = form.save(commit=False)
-            new_vehicle.id = next_vehicle_id
-            new_vehicle.save()
+            form.save()
             return HttpResponseRedirect(reverse('vehicles'))
     else:
         form = VehicleCreationForm()
     return render(request, 'wow/vehicle_creation.html', {'form': form})
 
-
+@staff_member_required
 def delete_vehicle(request, id):
     vehicle = get_object_or_404(Vehicle, pk=id)
     if request.method == 'POST':
@@ -291,7 +271,7 @@ def delete_vehicle(request, id):
         return HttpResponseRedirect(reverse('vehicles'))
     return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
-
+@login_required
 def delete_rentalservice(request, id):
     rentalservice = get_object_or_404(RentalService, pk=id)
     if request.method == 'POST':
@@ -299,6 +279,14 @@ def delete_rentalservice(request, id):
         return HttpResponseRedirect(reverse('bookings'))
     return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
-
+# Checkout with an existing payment method
+@login_required
 def checkout(request):
-    return render(request, 'wow/checkout.html')
+    pass
+
+
+def return_vehicle(request, id):
+    service = RentalService.objects.get(id=id)
+    service.is_active = False
+    service.save()
+    return HttpResponseRedirect(reverse('bookings'))

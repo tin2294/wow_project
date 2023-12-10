@@ -30,10 +30,10 @@
                     <td>{{ vehicle.make }}</td>
                     <td>{{ vehicle.model }}</td>
                     <td>{{ vehicle.year }}</td>
-                    <td>{{ vehicle.class_id__class_name }}</td>
-                    <td>{{ vehicle.class_id__daily_rate }}</td>
-                    <td>{{ vehicle.class_id__daily_mileage }}</td>
-                    <td>{{ vehicle.class_id__overage_rate }}</td>
+                    <td>{{ vehicle.vclass__class_name }}</td>
+                    <td>{{ vehicle.vclass__daily_rate }}</td>
+                    <td>{{ vehicle.vclass__daily_mileage }}</td>
+                    <td>{{ vehicle.vclass__overage_rate }}</td>
                     {% if user.is_staff %}
                         <td>
                             <form action="{% url 'delete_vehicle' vehicle.id %}" method="post">
