@@ -33,9 +33,6 @@
         </style>
     </head>
     <body>
-    <div class="mb-2">
-        <a href="{% url 'vehicles' %}" class="btn btn-outline-secondary btn-small">Back to Vehicles</a>
-    </div>
     <div>
         <div class="container" id="details-table">
             <h1>Vehicle Details</h1>
@@ -63,13 +60,19 @@
                 <label>License Plate Number:</label>
                 <span>{{ vehicle.lp_number }}</span>
             </div>
-            <button onclick="toggleRentalServiceForm()" class="btn btn-success btn-small">Book!</button>
-            <button onclick="showUpdateForm()" class="btn btn-primary btn-small">Update Vehicle</button>
+            {% if request.user.is_staff %}
+                <a href="{% url 'book_vehicle_bo' vehicle.id %}" class="btn btn-success btn-small">Book this vehicle!</a>
+            {% else %}
+                <a href="{% url 'book_vehicle' vehicle.id %}" class="btn btn-success btn-small">Book this vehicle!</a>
+            {% endif %}
+            {% if user.is_staff %}
+                <button onclick="showUpdateForm()" class="btn btn-primary btn-small">Update Vehicle</button>
+            {% endif %}
         </div>
     </div>
     <div id="update-form" class="update-form container">
         <h1>Vehicle Details</h1>
-        <form method="POST" action="{% url 'update_vehicle' vehicle.vehicle_id %}">
+        <form method="POST" action="{% url 'update_vehicle' vehicle.id %}">
             {% csrf_token %}
             <div class="details">
                 <label for="vin">VIN:</label>

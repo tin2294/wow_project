@@ -74,6 +74,37 @@ class RentalServiceForm(forms.ModelForm):
         exclude = ['id']
 
 
+class RentalServiceCustVehInclForm(forms.ModelForm):
+    pickup_state = forms.ChoiceField(choices=STATES)
+
+    def __init__(self, *args, **kwargs):
+        super(RentalServiceCustVehInclForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = RentalService
+        exclude = ['id', 'customer', 'vehicle']
+
+
+class RentalServiceStaffVehInclForm(forms.ModelForm):
+    pickup_state = forms.ChoiceField(choices=STATES)
+    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), label='Customer')
+
+    def __init__(self, *args, **kwargs):
+        super(RentalServiceStaffVehInclForm, self).__init__(*args, **kwargs)
+        self.fields['customer'].label_from_instance = self.get_cust_label
+
+    def get_cust_label(self, obj):
+        if hasattr(obj, 'indivcust') and obj.cust_type == 'I':
+            return f"{obj.indivcust.customer.user.first_name} {obj.indivcust.customer.user.last_name}"
+        elif hasattr(obj, 'corpcust') and obj.cust_type == 'C':
+            return obj.corpcust.company_name
+        return ''
+
+    class Meta:
+        model = RentalService
+        exclude = ['id', 'vehicle']
+
+
 class RentalServiceUpdateForm(forms.ModelForm):
     class Meta:
         model = RentalService
