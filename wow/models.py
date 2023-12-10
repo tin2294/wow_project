@@ -112,7 +112,7 @@ class Invoice(models.Model):
 
 
 class Payment(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.DO_NOTHING)
+    invoice = models.ForeignKey(Invoice, on_delete=models.DO_NOTHING, null=True)
     card_number = models.CharField(max_length=20)
     payment_method = models.CharField(max_length=1, choices=PAYMENT_METHOD_TYPE)
 
