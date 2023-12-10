@@ -30,6 +30,7 @@ def view_function(request):
 def index(request):
     return render(request, 'wow/home.html', {})
 
+# Commit test
 ### Profile and User Related Views ###
 def register_account(request):
     if request.method == "POST":
