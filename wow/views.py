@@ -128,7 +128,7 @@ def bookings_emp(request):
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
             'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
             'customer__indivcust__license_no', 'customer__indivcust__insurance_co', 'customer__indivcust__insurance_policy_num',
-            'customer__user__first_name', 'customer__user__last_name'
+            'customer__user__first_name', 'customer__user__last_name', 'is_active'
         )
 
         bookings_query_corp = RentalService.objects.filter(customer__cust_type='C').select_related(
@@ -136,7 +136,7 @@ def bookings_emp(request):
         ).values(
             'id', 'pickup_street', 'pickup_state', 'pickup_country', 'pickup_zipcode', 'pickup_date',
             'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make', 'vehicle__model',
-            'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id'
+            'customer__corpcust__company_name', 'customer__corpcust__company_number', 'customer__corpcust__emp_id', 'is_active'
         )
     else:
         if hasattr(user, 'customer'):
@@ -150,7 +150,7 @@ def bookings_emp(request):
                     'vehicle__model',
                     'customer__indivcust__license_no', 'customer__indivcust__insurance_co',
                     'customer__indivcust__insurance_policy_num',
-                    'customer__user__first_name', 'customer__user__last_name'
+                    'customer__user__first_name', 'customer__user__last_name', 'is_active'
                 )
                 bookings_query_corp = []
             elif customer.cust_type == 'C':
@@ -161,7 +161,7 @@ def bookings_emp(request):
                     'dropoff_date', 'start_odometer', 'end_odometer', 'vehicle__vclass__class_name', 'vehicle__make',
                     'vehicle__model',
                     'customer__corpcust__company_name', 'customer__corpcust__company_number',
-                    'customer__corpcust__emp_id'
+                    'customer__corpcust__emp_id', 'is_active'
                 )
                 bookings_query_ind = []
 
@@ -283,3 +283,10 @@ def delete_rentalservice(request, id):
 @login_required
 def checkout(request):
     pass
+
+
+def return_vehicle(request, id):
+    service = RentalService.objects.get(id=id)
+    service.is_active = False
+    service.save()
+    return HttpResponseRedirect(reverse('bookings'))

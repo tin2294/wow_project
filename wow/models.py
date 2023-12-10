@@ -104,7 +104,7 @@ class RentalService(models.Model):
         # based on start and end odometer
         if not self.is_active:
             Invoice.objects.create(service=self, invoice_date=datetime.now())
-
+        return super().save(*args, **kwargs)
 
 class Invoice(models.Model):
     service = models.ForeignKey(RentalService, on_delete=models.SET_NULL, null=True, blank=True)
