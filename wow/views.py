@@ -16,6 +16,7 @@ from .forms import (
     RentalServiceCustVehInclForm,
     RentalServiceStaffVehInclForm
 )
+from .functions import compute_invoice_amount
 
 """
 If we want to designate a view as staff only, we can use the following import
@@ -194,7 +195,7 @@ def book_vehicle(request, id):
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
-                return redirect('checkout')
+                return redirect('checkout', next_service_id)
     else:
         form = RentalServiceCustVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -213,7 +214,7 @@ def book_vehicle_bo(request, id):
             new_service.id = next_service_id
             new_service.vehicle = vehicle
             new_service.save()
-            return redirect('checkout')
+            return redirect('checkout', next_service_id)
     else:
         form = RentalServiceStaffVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -261,7 +262,7 @@ def create_rentalservice(request):
                 new_service = form.save(commit=False)
                 new_service.id = next_service_id
                 new_service.save()
-                return redirect('checkout')
+                return redirect('checkout', next_service_id)
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -300,5 +301,19 @@ def delete_rentalservice(request, id):
     return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
 
-def checkout(request):
-    return render(request, 'wow/checkout.html')
+def checkout(request, id):
+    service = RentalService.objects.get(id=id)
+    daily_rate = service.vehicle.vclass.daily_rate
+    overage_rate = service.vehicle.vclass.overage_rate
+    daily_mil = service.vehicle.vclass.daily_mileage
+    start_odom = service.start_odometer
+    end_odom = service.end_odometer
+    pickup_date = service.pickup_date
+    dropoff_date = service.dropoff_date
+    # subsitute with the right one
+    percentage = 0.5
+
+    amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
+    # create invoice
+    # payment info
+    return render(request, 'wow/checkout.html', {'inv_amount': amount})
