@@ -6,7 +6,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h2 class="text-center">Enter Payment Information</h2>
+                    <h2 class="text-center">End Rental</h2>
                 </div>
                 <div class="card-body">
                     <form method="POST" class="my-form">
@@ -17,8 +17,7 @@
                                 {{ field }}
                             </div>
                         {% endfor %}
-                        <button type="submit" class="btn btn-primary">Create Booking</button>
-                        <a href="{% url 'bookings' %}" class="btn btn-outline-dark">Back to Bookings</a>
+                        <button type="submit" class="btn btn-primary">End Booking</button>
                     </form>
                 </div>
             </div>

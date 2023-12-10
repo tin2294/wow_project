@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment
+from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment, IndivDiscount, CorpDiscount
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -130,4 +130,36 @@ class VehicleCreationForm(forms.ModelForm):
 
     class Meta:
         model = Vehicle
+        exclude = ['id']
+
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        exclude = ['id', 'invoice']
+
+
+class FinalizeBookingForm(forms.ModelForm):
+    class Meta:
+        model = RentalService
+        fields = ['start_odometer', 'end_odometer', 'dropoff_date']
+
+    def __init__(self, *args, **kwargs):
+        super(FinalizeBookingForm, self).__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+
+        if instance:
+            self.fields['start_odometer'].widget.attrs['placeholder'] = str(instance.start_odometer)
+            self.fields['dropoff_date'].widget.attrs['placeholder'] = str(instance.dropoff_date)
+
+
+class IndDiscountCreationForm(forms.ModelForm):
+    class Meta:
+        model = IndivDiscount
+        exclude = ['id']
+
+
+class CorpDiscountCreationForm(forms.ModelForm):
+    class Meta:
+        model = CorpDiscount
         exclude = ['id']

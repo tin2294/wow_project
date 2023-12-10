@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from wow.models import RentalService, Customer, Vehicle, VClass
+from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment
 from django.contrib.admin.views.decorators import staff_member_required
 from .forms import (
     VehicleForm,
@@ -15,9 +15,14 @@ from .forms import (
     CorpCustCreationForm,
     IndivCustCreationForm,
     RentalServiceCustVehInclForm,
-    RentalServiceStaffVehInclForm
+    RentalServiceStaffVehInclForm,
+    PaymentForm,
+    FinalizeBookingForm,
+    IndDiscountCreationForm,
+    CorpDiscountCreationForm
 )
 from .functions import compute_invoice_amount
+from django.utils import timezone
 
 """
 If we want to designate a view as staff only, we can use the following import
@@ -184,6 +189,7 @@ def vehicle_details(request, id):
 def book_vehicle(request, id):
     user = request.user
     vehicle = Vehicle.objects.get(id=id)
+    last_service = RentalService.objects.last().id
     if request.method == 'POST':
         form = RentalServiceCustVehInclForm(request.POST)
         if form.is_valid():
@@ -192,7 +198,7 @@ def book_vehicle(request, id):
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
-                return redirect('checkout', next_service_id)
+                return redirect('payment', last_service + 1)
     else:
         form = RentalServiceCustVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -200,13 +206,14 @@ def book_vehicle(request, id):
 
 def book_vehicle_bo(request, id):
     vehicle = Vehicle.objects.get(id=id)
+    last_service = RentalService.objects.last().id
     if request.method == 'POST':
         form = RentalServiceStaffVehInclForm(request.POST)
         if form.is_valid():
             new_service = form.save(commit=False)
             new_service.vehicle = vehicle
             new_service.save()
-            return redirect('checkout', next_service_id)
+            return redirect('payment', last_service + 1)
     else:
         form = RentalServiceStaffVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -248,7 +255,8 @@ def create_rentalservice(request):
         if form.is_valid():
             if user.is_staff:
                 form.save()
-                return redirect('checkout', next_service_id)
+                last_service = RentalService.objects.last().id
+                return redirect('payment', last_service + 1)
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -283,7 +291,7 @@ def delete_rentalservice(request, id):
 
 
 @login_required
-def checkout(request):
+def checkout(request, id):
     service = RentalService.objects.get(id=id)
     daily_rate = service.vehicle.vclass.daily_rate
     overage_rate = service.vehicle.vclass.overage_rate
@@ -292,17 +300,68 @@ def checkout(request):
     end_odom = service.end_odometer
     pickup_date = service.pickup_date
     dropoff_date = service.dropoff_date
-    # subsitute with the right one
-    percentage = 0.5
+    # default discount
+    percentage = 0
 
     amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
-    # create invoice
-    # payment info
+
+    # enter discount ID and then invoice total is recalculated
     return render(request, 'wow/checkout.html', {'inv_amount': amount})
 
 
+@login_required
 def return_vehicle(request, id):
     service = RentalService.objects.get(id=id)
     service.is_active = False
     service.save()
-    return HttpResponseRedirect(reverse('bookings'))
+    if request.method == 'POST':
+        form = FinalizeBookingForm(request.POST, instance=service)
+        if form.is_valid():
+            form.save()
+            return redirect('checkout', service.id)
+    else:
+        form = FinalizeBookingForm(instance=rentalservice)
+    return render(request, 'wow/finalize_service.html', {'form': form})
+
+
+@login_required
+def payment(request, id):
+    # create new empty invoice
+    service = RentalService.objects.get(id=id)
+    invoice = Invoice.objects.create(
+        service=service,
+        invoice_date=timezone.now())
+    invoice.save()
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.invoice = invoice
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = PaymentForm()
+    return render(request, 'wow/add_payment_method.html', {'form': form})
+
+
+@staff_member_required
+def create_indivdiscount(request):
+    if request.method == 'POST':
+        form = IndDiscountCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = IndDiscountCreationForm()
+    return render(request, 'wow/discount_creation.html', {'form': form})
+
+
+def create_corpdiscount(request):
+    if request.method == 'POST':
+        form = CorpDiscountCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = CorpDiscountCreationForm()
+    return render(request, 'wow/discount_creation.html', {'form': form})
+
