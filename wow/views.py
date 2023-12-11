@@ -213,7 +213,7 @@ def book_vehicle_bo(request, id):
             new_service = form.save(commit=False)
             new_service.vehicle = vehicle
             new_service.save()
-            return redirect('payment', last_service + 1)
+            return redirect('payment', last_service)
     else:
         form = RentalServiceStaffVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -256,7 +256,7 @@ def create_rentalservice(request):
             if user.is_staff:
                 form.save()
                 last_service = RentalService.objects.last().id
-                return redirect('payment', last_service + 1)
+                return redirect('payment', last_service)
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -292,7 +292,10 @@ def delete_rentalservice(request, id):
 
 @login_required
 def checkout(request, id):
+    apply_discounts_param = request.GET.get('apply_discounts')
+    apply_discounts = apply_discounts_param == 'True' if apply_discounts_param else False
     service = RentalService.objects.get(id=id)
+    vehicle = service.vehicle
     daily_rate = service.vehicle.vclass.daily_rate
     overage_rate = service.vehicle.vclass.overage_rate
     daily_mil = service.vehicle.vclass.daily_mileage
@@ -300,13 +303,36 @@ def checkout(request, id):
     end_odom = service.end_odometer
     pickup_date = service.pickup_date
     dropoff_date = service.dropoff_date
-    # default discount
     percentage = 0
 
-    amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
+    if apply_discounts:
+        user = request.user
+        if user.is_authenticated:
+            if user.customer.cust_type == 'C':
+                # Find the corporate customer's discount
+                corp_discount = CorpDiscount.objects.filter(customer=user.customer).first()
+                if corp_discount:
+                    percentage = corp_discount.percentage
+            elif user.customer.cust_type == 'I':
+                # Find the individual customer's last discount
+                last_indiv_discount = IndivDiscount.objects.filter(customer=user.customer).order_by('-end_date').first()
+                if last_indiv_discount:
+                    percentage = last_indiv_discount.percentage
 
-    # enter discount ID and then invoice total is recalculated
-    return render(request, 'wow/checkout.html', {'inv_amount': amount})
+    amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
+    breakdown_data = {
+        'Vehicle': f"{vehicle.make} {vehicle.model} {vehicle.year}",
+        'Daily Rate': daily_rate,
+        'Overage Rate': overage_rate,
+        'Daily Mileage of Car': daily_mil,
+        'Starting Read of Odometer': start_odom,
+        'Ending Read of Odometer': end_odom,
+        'Pick-up Date': pickup_date,
+        'Drop-off Date': dropoff_date,
+        'Discounts Applied': percentage,
+        'Total Amount': "${:,.2f}".format(amount),
+    }
+    return render(request, 'wow/checkout.html', {'breakdown_data': breakdown_data})
 
 
 @login_required
@@ -318,9 +344,13 @@ def return_vehicle(request, id):
         form = FinalizeBookingForm(request.POST, instance=service)
         if form.is_valid():
             form.save()
-            return redirect('checkout', service.id)
+            apply_discounts = request.POST.get('apply_discounts')
+            url = reverse('checkout', args=(service.id,))
+            if apply_discounts:
+                url += f'?apply_discounts={apply_discounts}'
+            return HttpResponseRedirect(url)
     else:
-        form = FinalizeBookingForm(instance=rentalservice)
+        form = FinalizeBookingForm(instance=service)
     return render(request, 'wow/finalize_service.html', {'form': form})
 
 

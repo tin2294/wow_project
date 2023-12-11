@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment, IndivDiscount, CorpDiscount
+from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment, IndivDiscount, CorpDiscount, InvoiceIndivDiscount, InvoiceCorpDiscount
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -140,6 +140,7 @@ class PaymentForm(forms.ModelForm):
 
 
 class FinalizeBookingForm(forms.ModelForm):
+    apply_discounts = forms.BooleanField(required=False)
     class Meta:
         model = RentalService
         fields = ['start_odometer', 'end_odometer', 'dropoff_date']
@@ -163,3 +164,4 @@ class CorpDiscountCreationForm(forms.ModelForm):
     class Meta:
         model = CorpDiscount
         exclude = ['id']
+
