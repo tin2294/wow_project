@@ -155,12 +155,38 @@ class FinalizeBookingForm(forms.ModelForm):
 
 
 class IndDiscountCreationForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), label='Customer')
+
+    def __init__(self, *args, **kwargs):
+        super(IndDiscountCreationForm, self).__init__(*args, **kwargs)
+        self.fields['customer'].label_from_instance = self.get_cust_label
+
+    def get_cust_label(self, obj):
+        if hasattr(obj, 'indivcust') and obj.cust_type == 'I':
+            return f"{obj.indivcust.customer.user.first_name} {obj.indivcust.customer.user.last_name}"
+        elif hasattr(obj, 'corpcust') and obj.cust_type == 'C':
+            return obj.corpcust.company_name
+        return ''
+
     class Meta:
         model = IndivDiscount
         exclude = ['id']
 
 
 class CorpDiscountCreationForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), label='Customer')
+
+    def __init__(self, *args, **kwargs):
+        super(CorpDiscountCreationForm, self).__init__(*args, **kwargs)
+        self.fields['customer'].label_from_instance = self.get_cust_label
+
+    def get_cust_label(self, obj):
+        if hasattr(obj, 'indivcust') and obj.cust_type == 'I':
+            return f"{obj.indivcust.customer.user.first_name} {obj.indivcust.customer.user.last_name}"
+        elif hasattr(obj, 'corpcust') and obj.cust_type == 'C':
+            return obj.corpcust.company_name
+        return ''
+
     class Meta:
         model = CorpDiscount
         exclude = ['id']
