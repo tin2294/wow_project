@@ -72,6 +72,10 @@ class RentalServiceForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id']
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 
 class RentalServiceCustVehInclForm(forms.ModelForm):
@@ -83,7 +87,10 @@ class RentalServiceCustVehInclForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id', 'customer', 'vehicle', 'end_odometer', 'is_active']
-
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 class RentalServiceStaffVehInclForm(forms.ModelForm):
     pickup_state = forms.ChoiceField(choices=STATES)
@@ -103,6 +110,10 @@ class RentalServiceStaffVehInclForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id', 'vehicle']
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 
 class RentalServiceUpdateForm(forms.ModelForm):
@@ -144,6 +155,9 @@ class FinalizeBookingForm(forms.ModelForm):
     class Meta:
         model = RentalService
         fields = ['start_odometer', 'end_odometer', 'dropoff_date']
+        widgets = {
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(FinalizeBookingForm, self).__init__(*args, **kwargs)
@@ -154,23 +168,21 @@ class FinalizeBookingForm(forms.ModelForm):
             self.fields['dropoff_date'].widget.attrs['placeholder'] = str(instance.dropoff_date)
 
 
-class IndDiscountCreationForm(forms.ModelForm):
-    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), label='Customer')
 
+class IndDiscountCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(IndDiscountCreationForm, self).__init__(*args, **kwargs)
-        self.fields['customer'].label_from_instance = self.get_cust_label
-
-    def get_cust_label(self, obj):
-        if hasattr(obj, 'indivcust') and obj.cust_type == 'I':
-            return f"{obj.indivcust.customer.user.first_name} {obj.indivcust.customer.user.last_name}"
-        elif hasattr(obj, 'corpcust') and obj.cust_type == 'C':
-            return obj.corpcust.company_name
-        return ''
+        individual_customers = Customer.objects.filter(cust_type='I')
+        choices = [(customer.id, f"{customer.user.first_name} {customer.user.last_name}") for customer in individual_customers]
+        self.fields['customer'] = forms.ChoiceField(choices=choices)
 
     class Meta:
         model = IndivDiscount
         exclude = ['id']
+        widgets = {
+            "start_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "end_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 
 class CorpDiscountCreationForm(forms.ModelForm):
@@ -178,14 +190,9 @@ class CorpDiscountCreationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CorpDiscountCreationForm, self).__init__(*args, **kwargs)
-        self.fields['customer'].label_from_instance = self.get_cust_label
-
-    def get_cust_label(self, obj):
-        if hasattr(obj, 'indivcust') and obj.cust_type == 'I':
-            return f"{obj.indivcust.customer.user.first_name} {obj.indivcust.customer.user.last_name}"
-        elif hasattr(obj, 'corpcust') and obj.cust_type == 'C':
-            return obj.corpcust.company_name
-        return ''
+        corporate_customers = CorpCust.objects.all()
+        choices = [(customer.id, f"{customer.company_name} - {customer.company_number}") for customer in corporate_customers]
+        self.fields['customer'] = forms.ChoiceField(choices=choices)
 
     class Meta:
         model = CorpDiscount
