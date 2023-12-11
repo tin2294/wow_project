@@ -15,6 +15,7 @@
                     <th>Make</th>
                     <th>Model</th>
                     <th>Year</th>
+                    <th>Office</th>
                     <th>Class Name</th>
                     <th>Daily Rate</th>
                     <th>Daily Mileage</th>
@@ -30,6 +31,7 @@
                     <td>{{ vehicle.make }}</td>
                     <td>{{ vehicle.model }}</td>
                     <td>{{ vehicle.year }}</td>
+                    <td>{{ vehicle.office__address_street }}, {{ vehicle.office__address_city }}</td>
                     <td>{{ vehicle.vclass__class_name }}</td>
                     <td>{{ vehicle.vclass__daily_rate }}</td>
                     <td>{{ vehicle.vclass__daily_mileage }}</td>

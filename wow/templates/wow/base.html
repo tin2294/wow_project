@@ -12,44 +12,59 @@
         body {
             font-family: 'Montserrat', sans-serif;
         }
+        .navbar {
+            background-color: #333333;
+        }
+        .navbar-brand, .nav-link {
+            color: white;
+        }
+        .navbar-brand:hover, .nav-link:hover {
+            color: #f8f9fa;
+        }
+        .navbar-toggler-icon {
+            background-color: white;
+        }
     </style>
 </head>
 <body>
 <header>
-    <nav class="navbar navbar-expand sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <a class="navbar-brand" href="{% url 'index' %}">World On Wheels</a>
-        <div class="collapse navbar-collapse">
-            <ul class="nav navbar-nav mr-auto">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'view_profile' %}">Profile</a>
+                    <a class="nav-link" href="{% url 'view_profile' %}">Profile</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'bookings' %}">Bookings</a>
+                    <a class="nav-link" href="{% url 'bookings' %}">Bookings</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'vehicles' %}">Browse Vehicles</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'logout' %}">Log Out</a>
+                    <a class="nav-link" href="{% url 'vehicles' %}">Browse Vehicles</a>
                 </li>
                 {% if user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'create_indiv_discount' %}">Create Indiv. Discount</a>
+                        <a class="nav-link" href="{% url 'create_indiv_discount' %}">Create Indiv. Discount</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'create_corp_discount' %}">Create Corp. Discount</a>
+                        <a class="nav-link" href="{% url 'create_corp_discount' %}">Create Corp. Discount</a>
                     </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'login' %}">Log In</a>
+                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'register' %}">Register</a>
+                    <a class="nav-link" href="{% url 'register' %}">Register</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'vehicles' %}">Browse Vehicles</a>
+                    <a class="nav-link" href="{% url 'vehicles' %}">Browse Vehicles</a>
                 </li>
                 {% endif %}
             </ul>

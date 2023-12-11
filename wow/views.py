@@ -176,7 +176,7 @@ def bookings_emp(request):
 
 
 def vehicles(request):
-    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'vclass__class_name', 'vclass__daily_rate', 'vclass__daily_mileage', 'vclass__overage_rate')
+    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'vclass__class_name', 'vclass__daily_rate', 'vclass__daily_mileage', 'vclass__overage_rate', 'office__address_street', 'office__address_city')
     vehicles = list(vehicles_queryset)
     return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
@@ -329,7 +329,7 @@ def checkout(request, id):
         'Ending Read of Odometer': end_odom,
         'Pick-up Date': pickup_date,
         'Drop-off Date': dropoff_date,
-        'Discounts Applied': percentage,
+        'Discounts Applied': "{:,.2f}%".format(percentage*100),
         'Total Amount': "${:,.2f}".format(amount),
     }
     return render(request, 'wow/checkout.html', {'breakdown_data': breakdown_data})
