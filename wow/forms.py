@@ -114,13 +114,13 @@ class RentalServiceUpdateForm(forms.ModelForm):
 
 
 class VehicleCreationForm(forms.ModelForm):
-    class_id = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
-    office_id = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
+    vclass = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
+    office = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
 
     def __init__(self, *args, **kwargs):
         super(VehicleCreationForm, self).__init__(*args, **kwargs)
-        self.fields['class_id'].label_from_instance = self.get_class
-        self.fields['office_id'].label_from_instance = self.get_office
+        self.fields['vclass'].label_from_instance = self.get_class
+        self.fields['office'].label_from_instance = self.get_office
 
     def get_class(self, obj):
         return f"{obj.class_name}, ${obj.daily_rate}"
