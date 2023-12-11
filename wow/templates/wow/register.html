@@ -1,9 +1,23 @@
 {% extends 'wow/base_form.html' %}
 {% block form %}
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <br>
-    <input type="submit" value="Submit">
-</form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Your Form</h3>
+                    </div>
+                    <div class="card-body">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="card-footer text-center">
+                        <input type="submit" class="btn btn-primary" value="Submit">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock form %}
