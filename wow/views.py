@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.db import connection
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment, CorpDiscount, IndivDiscount
 from django.contrib.admin.views.decorators import staff_member_required
 from .forms import (
@@ -56,24 +57,45 @@ def register_account(request):
 
     return render(request, 'wow/register.html', {"form": reg_form})
 
+
 @login_required
 def view_profile(request):
     user_instance = request.user
     procedure_name = 'GetCustomerDetails'
 
-    with connection.cursor() as cursor:
-        cursor.callproc(procedure_name, [user_instance.id])
-        result = cursor.fetchone()
+    cache_key = f'user_profile_{user_instance.id}'
+    cached_result = cache.get(cache_key)
 
-    if result:
-        first_name, last_name, email = result[0], result[1], result[2]
-        address_houseno, address_street, address_city = result[3], result[4], result[5]
-        address_state, address_zipcode = result[6], result[7]
-        company_name, company_number = result[8], result[9]
+    if not cached_result:
+        with connection.cursor() as cursor:
+            cursor.callproc(procedure_name, [user_instance.id])
+            result = cursor.fetchone()
 
-        address = f"{address_houseno} {address_street}, {address_city}, {address_state}, {address_zipcode}"
+        if result:
+            first_name, last_name, email = result[0], result[1], result[2]
+            address_houseno, address_street, address_city = result[3], result[4], result[5]
+            address_state, address_zipcode = result[6], result[7]
+            company_name, company_number = result[8], result[9]
+
+            address = f"{address_houseno} {address_street}, {address_city}, {address_state}, {address_zipcode}"
+
+            # Cache the result for future use
+            cache.set(cache_key, {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "address": address,
+                "company_name": company_name,
+                "company_number": company_number,
+            })
     else:
-        first_name, last_name, email, address, company_name, company_number = "", "", "", "", "", ""
+        # Use cached result
+        first_name = cached_result.get("first_name", "")
+        last_name = cached_result.get("last_name", "")
+        email = cached_result.get("email", "")
+        address = cached_result.get("address", "")
+        company_name = cached_result.get("company_name", "")
+        company_number = cached_result.get("company_number", "")
 
     context = {
         "first_name": first_name,
@@ -86,6 +108,7 @@ def view_profile(request):
         "company_number": company_number,
     }
     return render(request, 'wow/view_profile.html', context)
+
 
 @login_required
 def create_profile(request):
