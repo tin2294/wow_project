@@ -7,12 +7,6 @@
         <meta charset="UTF-8">
         <title>Vehicle Details</title>
         <style>
-            /* Basic styling */
-            body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-                flex-direction: column;
-            }
             .container {
                 max-width: 600px;
                 margin: 0 auto;
@@ -34,7 +28,7 @@
     </head>
     <body>
     <div>
-        <div class="container" id="details-table">
+        <div class="container mt-4" id="details-table">
             <h1>Vehicle Details</h1>
             <div class="details">
                 <label>VIN:</label>
@@ -70,7 +64,7 @@
             {% endif %}
         </div>
     </div>
-    <div id="update-form" class="update-form container">
+    <div id="update-form" class="update-form container mt-4">
         <h1>Vehicle Details</h1>
         <form method="POST" action="{% url 'update_vehicle' vehicle.id %}">
             {% csrf_token %}
