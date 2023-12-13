@@ -1,6 +1,7 @@
 import logging
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
+from django.db import connection
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment, CorpDiscount, IndivDiscount
@@ -23,6 +24,7 @@ from .forms import (
 )
 from .functions import compute_invoice_amount
 from django.utils import timezone
+from django.db.models import Count
 
 """
 If we want to designate a view as staff only, we can use the following import
@@ -57,12 +59,31 @@ def register_account(request):
 @login_required
 def view_profile(request):
     user_instance = request.user
+    procedure_name = 'GetCustomerDetails'
+
+    with connection.cursor() as cursor:
+        cursor.callproc(procedure_name, [user_instance.id])
+        result = cursor.fetchone()
+
+    if result:
+        first_name, last_name, email = result[0], result[1], result[2]
+        address_houseno, address_street, address_city = result[3], result[4], result[5]
+        address_state, address_zipcode = result[6], result[7]
+        company_name, company_number = result[8], result[9]
+
+        address = f"{address_houseno} {address_street}, {address_city}, {address_state}, {address_zipcode}"
+    else:
+        first_name, last_name, email, address, company_name, company_number = "", "", "", "", "", ""
+
     context = {
-        "first_name": user_instance.first_name,
-        "last_name": user_instance.last_name,
-        "email": user_instance.email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
         "is_staff": user_instance.is_staff,
         "account_type": user_instance.customer.cust_type if hasattr(user_instance, 'customer') else "Staff",
+        "address": address,
+        "company_name": company_name,
+        "company_number": company_number,
     }
     return render(request, 'wow/view_profile.html', context)
 
@@ -396,3 +417,29 @@ def create_corpdiscount(request):
         form = CorpDiscountCreationForm()
     return render(request, 'wow/discount_creation.html', {'form': form})
 
+
+@staff_member_required
+def vehicle_classes_by_make(request):
+    query_results = (
+        Vehicle.objects
+        .values('vclass__class_name')
+        .annotate(count=Count('*'))
+        .order_by('vclass__class_name')
+    )
+
+    data = {}
+    luxury_count = 0
+
+    for result in query_results:
+        class_name = result['vclass__class_name']
+        count = result['count']
+
+        if class_name.startswith('Luxury'):
+            luxury_count += count
+        else:
+            data[class_name] = count
+
+    if luxury_count > 0:
+        data['Luxury'] = luxury_count
+
+    return render(request, 'wow/vehicle_classes_by_make.html', {'data': data})
