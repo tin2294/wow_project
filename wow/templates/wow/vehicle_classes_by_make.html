@@ -1,0 +1,46 @@
+{% extends 'wow/base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Classes Breakdown</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="mt-2 w-50 justify-content-center">
+        <canvas id="vehicleChart" width="200" height="200"></canvas>
+    </div>
+    <script>
+        var data = {{ data | safe }};
+        var labels = Object.keys(data);
+        var counts = Object.values(data);
+
+        var ctx = document.getElementById('vehicleChart').getContext('2d');
+        var vehicleChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.5)',
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(153, 102, 255, 0.5)',
+                        'rgba(255, 159, 64, 0.5)',
+                        'rgba(128, 0, 128, 0.5)',
+                        'rgba(0, 128, 0, 0.5)',
+                        'rgba(255, 0, 0, 0.5)',
+                        'rgba(0, 0, 255, 0.5)',
+                        // Add more colors as needed
+                    ],
+                    borderWidth: 1
+                }]
+            },
+        });
+    </script>
+</body>
+</html>
+
+{% endblock content %}

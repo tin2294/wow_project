@@ -1,7 +1,17 @@
 {% extends "wow/base.html" %}
 {% block content %}
-    <h2>You have been logged out</h2>
-    <div class="border-top pt-3">
-        <small><a href="{% url 'login' %}">Log back in</a></small>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="card-title">You have been logged out</h2>
+                    <div class="border-top pt-3">
+                        <p class="card-text"><small><a href="{% url 'login' %}">Log back in</a></small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

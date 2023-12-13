@@ -26,6 +26,10 @@ urlpatterns = [
     # Template not complete
     path('delete_booking/<int:id>/', views.delete_rentalservice, name='delete_rentalservice'),
     # Template exists but is not complete
-    path('checkout', views.checkout, name='checkout'),
-    path('return_vehicle/<int:id>/', views.return_vehicle, name='return_vehicle')
+    path('bookings/<str:id>/checkout', views.checkout, name='checkout'),
+    path('bookings/<str:id>/payment', views.payment, name='payment'),
+    path('return_vehicle/<int:id>/', views.return_vehicle, name='return_vehicle'),
+    path("create_discount/individual", views.create_indivdiscount, name="create_indiv_discount"),
+    path("create_discount/corporate", views.create_corpdiscount, name="create_corp_discount"),
+    path("vehicle_classes_by_make", views.vehicle_classes_by_make, name="vehicle_classes_by_make")
 ]

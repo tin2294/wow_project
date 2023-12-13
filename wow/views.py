@@ -1,9 +1,11 @@
 import logging
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
+from django.db import connection
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from wow.models import RentalService, Customer, Vehicle, VClass
+from django.core.cache import cache
+from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment, CorpDiscount, IndivDiscount
 from django.contrib.admin.views.decorators import staff_member_required
 from .forms import (
     VehicleForm,
@@ -15,8 +17,15 @@ from .forms import (
     CorpCustCreationForm,
     IndivCustCreationForm,
     RentalServiceCustVehInclForm,
-    RentalServiceStaffVehInclForm
+    RentalServiceStaffVehInclForm,
+    PaymentForm,
+    FinalizeBookingForm,
+    IndDiscountCreationForm,
+    CorpDiscountCreationForm
 )
+from .functions import compute_invoice_amount
+from django.utils import timezone
+from django.db.models import Count
 
 """
 If we want to designate a view as staff only, we can use the following import
@@ -48,17 +57,58 @@ def register_account(request):
 
     return render(request, 'wow/register.html', {"form": reg_form})
 
+
 @login_required
 def view_profile(request):
     user_instance = request.user
+    procedure_name = 'GetCustomerDetails'
+
+    cache_key = f'user_profile_{user_instance.id}'
+    cached_result = cache.get(cache_key)
+
+    if not cached_result:
+        with connection.cursor() as cursor:
+            cursor.callproc(procedure_name, [user_instance.id])
+            result = cursor.fetchone()
+
+        if result:
+            first_name, last_name, email = result[0], result[1], result[2]
+            address_houseno, address_street, address_city = result[3], result[4], result[5]
+            address_state, address_zipcode = result[6], result[7]
+            company_name, company_number = result[8], result[9]
+
+            address = f"{address_houseno} {address_street}, {address_city}, {address_state}, {address_zipcode}"
+
+            # Cache the result for future use
+            cache.set(cache_key, {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "address": address,
+                "company_name": company_name,
+                "company_number": company_number,
+            })
+    else:
+        # Use cached result
+        first_name = cached_result.get("first_name", "")
+        last_name = cached_result.get("last_name", "")
+        email = cached_result.get("email", "")
+        address = cached_result.get("address", "")
+        company_name = cached_result.get("company_name", "")
+        company_number = cached_result.get("company_number", "")
+
     context = {
-        "first_name": user_instance.first_name,
-        "last_name": user_instance.last_name,
-        "email": user_instance.email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
         "is_staff": user_instance.is_staff,
         "account_type": user_instance.customer.cust_type if hasattr(user_instance, 'customer') else "Staff",
+        "address": address,
+        "company_name": company_name,
+        "company_number": company_number,
     }
     return render(request, 'wow/view_profile.html', context)
+
 
 @login_required
 def create_profile(request):
@@ -170,7 +220,7 @@ def bookings_emp(request):
 
 
 def vehicles(request):
-    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'vclass__class_name', 'vclass__daily_rate', 'vclass__daily_mileage', 'vclass__overage_rate')
+    vehicles_queryset = Vehicle.objects.all().values('id', 'make', 'model', 'year', 'vclass__class_name', 'vclass__daily_rate', 'vclass__daily_mileage', 'vclass__overage_rate', 'office__address_street', 'office__address_city')
     vehicles = list(vehicles_queryset)
     return render(request, 'wow/vehicles.html', {'vehicles': vehicles})
 
@@ -183,6 +233,10 @@ def vehicle_details(request, id):
 def book_vehicle(request, id):
     user = request.user
     vehicle = Vehicle.objects.get(id=id)
+    if rental_service := RentalService.objects.last():
+        last_service = rental_service.id
+    else:
+        last_service = 1
     if request.method == 'POST':
         form = RentalServiceCustVehInclForm(request.POST)
         if form.is_valid():
@@ -191,7 +245,7 @@ def book_vehicle(request, id):
                 new_service.customer = user.customer
                 new_service.vehicle = vehicle
                 new_service.save()
-                return redirect('checkout')
+                return redirect('payment', last_service + 1)
     else:
         form = RentalServiceCustVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -199,13 +253,14 @@ def book_vehicle(request, id):
 
 def book_vehicle_bo(request, id):
     vehicle = Vehicle.objects.get(id=id)
+    last_service = RentalService.objects.last().id
     if request.method == 'POST':
         form = RentalServiceStaffVehInclForm(request.POST)
         if form.is_valid():
             new_service = form.save(commit=False)
             new_service.vehicle = vehicle
             new_service.save()
-            return redirect('checkout')
+            return redirect('payment', last_service)
     else:
         form = RentalServiceStaffVehInclForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -247,7 +302,8 @@ def create_rentalservice(request):
         if form.is_valid():
             if user.is_staff:
                 form.save()
-                return redirect('checkout')
+                last_service = RentalService.objects.last().id
+                return redirect('payment', last_service)
     else:
         form = RentalServiceForm()
     return render(request, 'wow/rentalservice_creation.html', {'form': form})
@@ -271,6 +327,7 @@ def delete_vehicle(request, id):
         return HttpResponseRedirect(reverse('vehicles'))
     return render(request, 'wow/vehicle_delete.html', {'vehicle': vehicle})
 
+
 @login_required
 def delete_rentalservice(request, id):
     rentalservice = get_object_or_404(RentalService, pk=id)
@@ -279,14 +336,133 @@ def delete_rentalservice(request, id):
         return HttpResponseRedirect(reverse('bookings'))
     return render(request, 'wow/rentalservice_delete.html', {'rentalservice': rentalservice})
 
-# Checkout with an existing payment method
+
 @login_required
-def checkout(request):
-    pass
+def checkout(request, id):
+    apply_discounts_param = request.GET.get('apply_discounts')
+    apply_discounts = apply_discounts_param == 'on' if apply_discounts_param else False
+    service = RentalService.objects.get(id=id)
+    vehicle = service.vehicle
+    daily_rate = service.vehicle.vclass.daily_rate
+    overage_rate = service.vehicle.vclass.overage_rate
+    daily_mil = service.vehicle.vclass.daily_mileage
+    start_odom = service.start_odometer
+    end_odom = service.end_odometer
+    pickup_date = service.pickup_date
+    dropoff_date = service.dropoff_date
+    percentage = 0
+    if apply_discounts:
+        user = service.customer
+        if user.cust_type == 'C':
+            # Find the corporate customer's discount
+            corp_discount = CorpDiscount.objects.filter(customer=user.corpcust).first()
+            if corp_discount:
+                percentage = corp_discount.percentage
+        elif user.cust_type == 'I':
+            # Find the individual customer's last discount
+            last_indiv_discount = IndivDiscount.objects.filter(customer=user.indivcust).order_by('-end_date').first()
+            if last_indiv_discount and last_indiv_discount.end_date >= dropoff_date:
+                percentage = last_indiv_discount.percentage
+
+    amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
+    breakdown_data = {
+        'Vehicle': f"{vehicle.make} {vehicle.model} {vehicle.year}",
+        'Daily Rate': daily_rate,
+        'Overage Rate': overage_rate,
+        'Daily Mileage of Car': daily_mil,
+        'Starting Read of Odometer': start_odom,
+        'Ending Read of Odometer': end_odom,
+        'Pick-up Date': pickup_date,
+        'Drop-off Date': dropoff_date,
+        'Discounts Applied': "{:,.2f}%".format(percentage*100),
+        'Total Amount': "${:,.2f}".format(amount),
+    }
+    return render(request, 'wow/checkout.html', {'breakdown_data': breakdown_data})
 
 
+@login_required
 def return_vehicle(request, id):
     service = RentalService.objects.get(id=id)
     service.is_active = False
     service.save()
-    return HttpResponseRedirect(reverse('bookings'))
+    if request.method == 'POST':
+        form = FinalizeBookingForm(request.POST, instance=service)
+        if form.is_valid():
+            form.save()
+            apply_discounts = request.POST.get('apply_discounts')
+            url = reverse('checkout', args=(service.id,))
+            if apply_discounts:
+                url += f'?apply_discounts={apply_discounts}'
+            return HttpResponseRedirect(url)
+    else:
+        form = FinalizeBookingForm(instance=service)
+    return render(request, 'wow/finalize_service.html', {'form': form})
+
+
+@login_required
+def payment(request, id):
+    # create new empty invoice
+    service = RentalService.objects.get(id=id)
+    invoice = Invoice.objects.create(
+        service=service,
+        invoice_date=timezone.now())
+    invoice.save()
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.invoice = invoice
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = PaymentForm()
+    return render(request, 'wow/add_payment_method.html', {'form': form})
+
+
+@staff_member_required
+def create_indivdiscount(request):
+    if request.method == 'POST':
+        form = IndDiscountCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = IndDiscountCreationForm()
+    return render(request, 'wow/discount_creation.html', {'form': form})
+
+
+def create_corpdiscount(request):
+    if request.method == 'POST':
+        form = CorpDiscountCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('bookings'))
+    else:
+        form = CorpDiscountCreationForm()
+    return render(request, 'wow/discount_creation.html', {'form': form})
+
+
+@staff_member_required
+def vehicle_classes_by_make(request):
+    query_results = (
+        Vehicle.objects
+        .values('vclass__class_name')
+        .annotate(count=Count('*'))
+        .order_by('vclass__class_name')
+    )
+
+    data = {}
+    luxury_count = 0
+
+    for result in query_results:
+        class_name = result['vclass__class_name']
+        count = result['count']
+
+        if class_name.startswith('Luxury'):
+            luxury_count += count
+        else:
+            data[class_name] = count
+
+    if luxury_count > 0:
+        data['Luxury'] = luxury_count
+
+    return render(request, 'wow/vehicle_classes_by_make.html', {'data': data})

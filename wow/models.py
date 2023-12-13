@@ -99,12 +99,6 @@ class RentalService(models.Model):
     end_odometer = models.IntegerField(verbose_name="End Odometer Reading", null=True)
     is_active = models.BooleanField(default=True)
 
-    def save(self, *args, **kwargs):
-        # When a RentalService instance concludes (is set to inactive), create an invoice for the trip
-        # based on start and end odometer
-        if not self.is_active:
-            Invoice.objects.create(service=self, invoice_date=datetime.now())
-        return super().save(*args, **kwargs)
 
 class Invoice(models.Model):
     service = models.ForeignKey(RentalService, on_delete=models.SET_NULL, null=True, blank=True)

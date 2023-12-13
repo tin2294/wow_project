@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment
+from .models import Customer, Vehicle, RentalService, VClass, Office, CorpCust, IndivCust, Payment, IndivDiscount, CorpDiscount, InvoiceIndivDiscount, InvoiceCorpDiscount
 from .constants import STATES
 from django.contrib.auth.models import User
 
@@ -72,6 +72,10 @@ class RentalServiceForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id']
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 
 class RentalServiceCustVehInclForm(forms.ModelForm):
@@ -83,7 +87,10 @@ class RentalServiceCustVehInclForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id', 'customer', 'vehicle', 'end_odometer', 'is_active']
-
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 class RentalServiceStaffVehInclForm(forms.ModelForm):
     pickup_state = forms.ChoiceField(choices=STATES)
@@ -103,6 +110,10 @@ class RentalServiceStaffVehInclForm(forms.ModelForm):
     class Meta:
         model = RentalService
         exclude = ['id', 'vehicle']
+        widgets = {
+            "pickup_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
 
 
 class RentalServiceUpdateForm(forms.ModelForm):
@@ -114,13 +125,13 @@ class RentalServiceUpdateForm(forms.ModelForm):
 
 
 class VehicleCreationForm(forms.ModelForm):
-    class_id = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
-    office_id = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
+    vclass = forms.ModelChoiceField(queryset=VClass.objects.all(), label='Type of Vehicle')
+    office = forms.ModelChoiceField(queryset=Office.objects.all(), label='Office')
 
     def __init__(self, *args, **kwargs):
         super(VehicleCreationForm, self).__init__(*args, **kwargs)
-        self.fields['class_id'].label_from_instance = self.get_class
-        self.fields['office_id'].label_from_instance = self.get_office
+        self.fields['vclass'].label_from_instance = self.get_class
+        self.fields['office'].label_from_instance = self.get_office
 
     def get_class(self, obj):
         return f"{obj.class_name}, ${obj.daily_rate}"
@@ -131,3 +142,61 @@ class VehicleCreationForm(forms.ModelForm):
     class Meta:
         model = Vehicle
         exclude = ['id']
+
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        exclude = ['id', 'invoice']
+
+
+class FinalizeBookingForm(forms.ModelForm):
+    apply_discounts = forms.BooleanField(required=False)
+    class Meta:
+        model = RentalService
+        fields = ['start_odometer', 'end_odometer', 'dropoff_date']
+        widgets = {
+            "dropoff_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(FinalizeBookingForm, self).__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+
+        if instance:
+            self.fields['start_odometer'].widget.attrs['placeholder'] = str(instance.start_odometer)
+            self.fields['dropoff_date'].widget.attrs['placeholder'] = str(instance.dropoff_date)
+
+
+
+class IndDiscountCreationForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(queryset=IndivCust.objects.all(), label='Customer')
+
+    def __init__(self, *args, **kwargs):
+        super(IndDiscountCreationForm, self).__init__(*args, **kwargs)
+        individual_customers = IndivCust.objects.all()
+        choices = [(customer.id, f"{customer.customer.user.first_name} {customer.customer.user.last_name}") for customer in individual_customers]
+        self.fields['customer'].choices = choices
+
+    class Meta:
+        model = IndivDiscount
+        exclude = ['id']
+        widgets = {
+            "start_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "end_date": forms.widgets.DateInput(attrs={"type": "date"}),
+        }
+
+
+class CorpDiscountCreationForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), label='Customer')
+
+    def __init__(self, *args, **kwargs):
+        super(CorpDiscountCreationForm, self).__init__(*args, **kwargs)
+        corporate_customers = CorpCust.objects.all()
+        choices = [(customer.id, f"{customer.company_name} - {customer.company_number}") for customer in corporate_customers]
+        self.fields['customer'] = forms.ChoiceField(choices=choices)
+
+    class Meta:
+        model = CorpDiscount
+        exclude = ['id']
+

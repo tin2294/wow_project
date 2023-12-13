@@ -1,9 +1,25 @@
 {% extends 'wow/base.html' %}
 {% block content %}
-    <h1>This is the user profile</h1>
-    <p>First Name: {{ first_name }}</p>
-    <p>Last Name: {{ last_name }}</p>
-    <p>Email: {{ email }}</p>
-    <P>WOW Employee: {{ is_staff }}</P>
-    <P>Account Type: {{ account_type }}</P>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title text-center">Your Profile</h1>
+                    <p class="card-text">First Name: {{ first_name }}</p>
+                    <p class="card-text">Last Name: {{ last_name }}</p>
+                    <p class="card-text">Email: {{ email }}</p>
+                    {% if account_type == 'I' %}
+                    <p class="card-text">Address: {{ address }}</p>
+                    {% endif %}
+                    <p class="card-text">Account Type: {% if is_staff %} Staff {% elif account_type == 'I' %} Individual Customer {% elif account_type == 'C' %} Corporate Customer {% endif %}</p>
+                    {% if account_type == 'C' %}
+                    <p class="card-text">Company Name: {{ company_name }}</p>
+                    <p class="card-text">Company Number: {{ company_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

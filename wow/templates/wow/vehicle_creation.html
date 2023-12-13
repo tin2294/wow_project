@@ -1,5 +1,6 @@
 {% extends 'wow/base_form.html' %}
 
+{% load crispy_forms_tags %}
 {% block form %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -11,14 +12,9 @@
                 <div class="card-body">
                     <form method="POST" class="my-form">
                         {% csrf_token %}
-                        {% for field in form %}
-                            <div class="form-group">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                        {% endfor %}
-                        <button type="submit" class="btn btn-primary">Create Booking</button>
-                        <a href="{% url 'bookings' %}" class="btn btn-outline-dark">Back to Bookings</a>
+                        {{form | crispy }}
+                        <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                        <a href="{% url 'vehicles' %}" class="btn btn-outline-dark">Back to Vehicles</a>
                     </form>
                 </div>
             </div>

@@ -1,5 +1,25 @@
 {% extends 'wow/base.html' %}
 
 {% block content %}
-<!--create view and form for payment method and for all the invoice fields, calculation and discounts-->
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Invoice Details</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <ul class="list-group">
+                        {% for key, value in breakdown_data.items %}
+                            <li class="list-group-item">
+                                <strong>{{ key|title }}</strong>: {{ value }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

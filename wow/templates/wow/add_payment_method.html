@@ -1,10 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'wow/base.html' %}
 
-</body>
-</html>
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center">Enter Payment Information</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="my-form">
+                        {% csrf_token %}
+                        {{form | crispy }}
+                        <button type="submit" class="btn btn-primary">Create Booking</button>
+                        <a href="{% url 'bookings' %}" class="btn btn-outline-dark">Back to Bookings</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
