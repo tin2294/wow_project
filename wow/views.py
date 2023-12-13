@@ -317,7 +317,7 @@ def checkout(request, id):
         elif user.cust_type == 'I':
             # Find the individual customer's last discount
             last_indiv_discount = IndivDiscount.objects.filter(customer=user.indivcust).order_by('-end_date').first()
-            if last_indiv_discount:
+            if last_indiv_discount and last_indiv_discount.end_date >= dropoff_date:
                 percentage = last_indiv_discount.percentage
 
     amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
