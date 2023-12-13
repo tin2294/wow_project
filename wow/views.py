@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment
+from wow.models import RentalService, Customer, Vehicle, VClass, Invoice, Payment, CorpDiscount, IndivDiscount
 from django.contrib.admin.views.decorators import staff_member_required
 from .forms import (
     VehicleForm,
@@ -189,7 +189,10 @@ def vehicle_details(request, id):
 def book_vehicle(request, id):
     user = request.user
     vehicle = Vehicle.objects.get(id=id)
-    last_service = RentalService.objects.last().id
+    if rental_service := RentalService.objects.last():
+        last_service = rental_service.id
+    else:
+        last_service = 1
     if request.method == 'POST':
         form = RentalServiceCustVehInclForm(request.POST)
         if form.is_valid():
@@ -293,7 +296,7 @@ def delete_rentalservice(request, id):
 @login_required
 def checkout(request, id):
     apply_discounts_param = request.GET.get('apply_discounts')
-    apply_discounts = apply_discounts_param == 'True' if apply_discounts_param else False
+    apply_discounts = apply_discounts_param == 'on' if apply_discounts_param else False
     service = RentalService.objects.get(id=id)
     vehicle = service.vehicle
     daily_rate = service.vehicle.vclass.daily_rate
@@ -304,20 +307,18 @@ def checkout(request, id):
     pickup_date = service.pickup_date
     dropoff_date = service.dropoff_date
     percentage = 0
-
     if apply_discounts:
-        user = request.user
-        if user.is_authenticated:
-            if user.customer.cust_type == 'C':
-                # Find the corporate customer's discount
-                corp_discount = CorpDiscount.objects.filter(customer=user.customer).first()
-                if corp_discount:
-                    percentage = corp_discount.percentage
-            elif user.customer.cust_type == 'I':
-                # Find the individual customer's last discount
-                last_indiv_discount = IndivDiscount.objects.filter(customer=user.customer).order_by('-end_date').first()
-                if last_indiv_discount:
-                    percentage = last_indiv_discount.percentage
+        user = service.customer
+        if user.cust_type == 'C':
+            # Find the corporate customer's discount
+            corp_discount = CorpDiscount.objects.filter(customer=user.corpcust).first()
+            if corp_discount:
+                percentage = corp_discount.percentage
+        elif user.cust_type == 'I':
+            # Find the individual customer's last discount
+            last_indiv_discount = IndivDiscount.objects.filter(customer=user.indivcust).order_by('-end_date').first()
+            if last_indiv_discount:
+                percentage = last_indiv_discount.percentage
 
     amount = compute_invoice_amount(overage_rate, start_odom, end_odom, daily_rate, pickup_date, dropoff_date, daily_mil, percentage)
     breakdown_data = {

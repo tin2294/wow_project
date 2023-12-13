@@ -170,11 +170,13 @@ class FinalizeBookingForm(forms.ModelForm):
 
 
 class IndDiscountCreationForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(queryset=IndivCust.objects.all(), label='Customer')
+
     def __init__(self, *args, **kwargs):
         super(IndDiscountCreationForm, self).__init__(*args, **kwargs)
-        individual_customers = Customer.objects.filter(cust_type='I')
-        choices = [(customer.id, f"{customer.user.first_name} {customer.user.last_name}") for customer in individual_customers]
-        self.fields['customer'] = forms.ChoiceField(choices=choices)
+        individual_customers = IndivCust.objects.all()
+        choices = [(customer.id, f"{customer.customer.user.first_name} {customer.customer.user.last_name}") for customer in individual_customers]
+        self.fields['customer'].choices = choices
 
     class Meta:
         model = IndivDiscount
